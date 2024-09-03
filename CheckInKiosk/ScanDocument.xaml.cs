@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 using Windows.Services.Maps;
 using Windows.Web.Http;
 using System.Text.Json;
+using BiometricAuthenticationAPI.Data.Models;
+using CheckInKiosk.Utils.Services;
+using CheckInKiosk.Utils.Constants;
 
 namespace CheckInKiosk
 {
@@ -14,16 +17,23 @@ namespace CheckInKiosk
     {
         public event Action OnScanSuccess;
         public event Action OnRetry;
-        private readonly System.Net.Http.HttpClient _httpClient;
-
+        private HttpClientService _httpClientService;
 
         public ScanDocument()
         {
             InitializeComponent();
-            _httpClient = new System.Net.Http.HttpClient
-            {
-                BaseAddress = new Uri("http://localhost:5062/")
-            };
+        }
+
+        // Constructor with HttpClientService for manual instantiation
+        public ScanDocument(HttpClientService httpClientService) : this()
+        {
+            _httpClientService = httpClientService;
+        }
+
+        // Method to set the HttpClientService after instantiation
+        public void SetHttpClientService(HttpClientService httpClientService)
+        {
+            _httpClientService = httpClientService;
         }
 
         private void OnDocumentTypeSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -31,13 +41,6 @@ namespace CheckInKiosk
             // Show the text field when a document type is selected
             AdditionalInfoTextBox.Visibility = Visibility.Visible;
         }
-
-        private static readonly Dictionary<(string DocumentType, string AdditionalInfo), bool> DocumentVerificationData = new()
-        {
-            { ("Passport", "123456789"), true },
-            { ("Driver's License", "A1234567"), true },
-            { ("ID Card", "ID987654"), false } // Example of a document that fails verification
-        };
 
         private async void OnSubmitClick(object sender, RoutedEventArgs e)
         {
@@ -70,15 +73,13 @@ namespace CheckInKiosk
                 var jsonContent = new StringContent(
                     System.Text.Json.JsonSerializer.Serialize(request),
                     System.Text.Encoding.UTF8,
-                    "application/json"
+                    UIConstants.CONTENT_TYPE
                 );
-                var response = await _httpClient.PostAsync("api/DocumentScan/validate", jsonContent);
-                response.EnsureSuccessStatusCode();
-
-                var responseData = await response.Content.ReadAsStringAsync();
+                var responseData = await _httpClientService.PostAsync(APIEndpoint.VALIDATE_DOC_API, jsonContent);
                 // Parse the JSON response and extract the 'data' field as a boolean
                 var jsonDocument = JsonDocument.Parse(responseData);
-                bool isVerified = jsonDocument.RootElement.GetProperty("data").GetBoolean();
+                var data = jsonDocument.RootElement.GetProperty("data");
+                bool isVerified = data.GetProperty("isValid").GetBoolean();
 
                 // Hide loading indicator
                 LoadingOverlay.Visibility = Visibility.Collapsed;
@@ -100,14 +101,6 @@ namespace CheckInKiosk
                 LoadingOverlay.Visibility = Visibility.Collapsed;
                 VerificationMessage.Text = $"An error occurred: {ex.Message}";
             }
-        }
-
-
-        private Task<bool> VerifyDocumentAsync(string documentType, string additionalInfo)
-        {
-            // Use static data for verification
-            bool isVerified = DocumentVerificationData.TryGetValue((documentType, additionalInfo), out bool result) && result;
-            return Task.FromResult(isVerified);
         }
 
         private void OnOkayClick(object sender, RoutedEventArgs e)

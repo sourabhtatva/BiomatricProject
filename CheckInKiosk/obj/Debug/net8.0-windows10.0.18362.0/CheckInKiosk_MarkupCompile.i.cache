@@ -4,17 +4,17 @@
 winexe
 C#
 .cs
-C:\Users\ptdrd\source\repos\CheckInKiosk\CheckInKiosk\obj\Debug\net8.0-windows10.0.18362.0\
+C:\Users\pca244\Documents\GitHub\BiomatricProject\CheckInKiosk\obj\Debug\net8.0-windows10.0.18362.0\
 CheckInKiosk
 none
 false
 TRACE;DEBUG;NET;NET8_0;NETCOREAPP
-C:\Users\ptdrd\source\repos\CheckInKiosk\CheckInKiosk\App.xaml
+C:\Users\pca244\Documents\GitHub\BiomatricProject\CheckInKiosk\App.xaml
 5-1824117946
 
-10-118707688
-205-1915439955
+141835085216
+363-1305697710
 BiometricAppPopup.xaml;MainWindow.xaml;MatchAndEnroll.xaml;ScanDocument.xaml;TakePhoto.xaml;
 
-True
+False
 

@@ -1,9 +1,14 @@
 ﻿using AForge.Video;
 using AForge.Video.DirectShow;
+using Azure.Core;
+using BiometricAuthenticationAPI.Data.Models;
+using CheckInKiosk.Utils.Constants;
+using CheckInKiosk.Utils.Services;
 using System;
 using System.Drawing;
 using System.IO;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -18,12 +23,25 @@ namespace CheckInKiosk
         private VideoCaptureDevice videoSource;
         private Bitmap capturedImage;
         private CancellationTokenSource cts; // For cancelling ongoing tasks
+        private HttpClientService _httpClientService;
 
         public event Action OnPhotoCaptured;
 
         public TakePhoto()
         {
             InitializeComponent();
+        }
+
+        // Constructor with HttpClientService for manual instantiation
+        public TakePhoto(HttpClientService httpClientService) : this()
+        {
+            _httpClientService = httpClientService;
+        }
+
+        // Method to set the HttpClientService after instantiation
+        public void SetHttpClientService(HttpClientService httpClientService)
+        {
+            _httpClientService = httpClientService;
         }
 
         public void StartCamera()
@@ -141,31 +159,44 @@ namespace CheckInKiosk
 
             try
             {
-                //For Demo
+                ////For Demo
 
-                DisplayBoardingPass(null); // Pass null as we are using static data
+                //DisplayBoardingPass(null); // Pass null as we are using static data
 
-                // Simulate a delay for API verification
-                await Task.Delay(1000); // Simulate API processing time
+                //// Simulate a delay for API verification
+                //await Task.Delay(1000); // Simulate API processing time
 
-                // Hide Loading Indicator and show the static boarding pass
-                VerificationMessage.Visibility = Visibility.Collapsed;
+                //// Hide Loading Indicator and show the static boarding pass
+                //VerificationMessage.Visibility = Visibility.Collapsed;
+                //LoadingIndicator.Visibility = Visibility.Collapsed;
+                var request = new MatchFacesRequest()
+                {
+                    ScannedImage = imageData,
+                    ClickedImage = imageData
+                };
+
+                 //var boardingPassDetails = await VerifyImageAsync(imageData, token);
+                var jsonContent = new StringContent(
+                    System.Text.Json.JsonSerializer.Serialize(request),
+                    System.Text.Encoding.UTF8,
+                    UIConstants.CONTENT_TYPE
+                );
+                var responseData = await _httpClientService.PostAsync(APIEndpoint.FACE_MATCHING_API, jsonContent);
+                // Parse the JSON response and extract the 'data' field as a boolean
+                var jsonDocument = JsonDocument.Parse(responseData);
+                var data = jsonDocument.RootElement.GetProperty("data");
+
                 LoadingIndicator.Visibility = Visibility.Collapsed;
 
-                //we api call 
-                /* var boardingPassDetails = await VerifyImageAsync(imageData, token);
-
-                 LoadingIndicator.Visibility = Visibility.Collapsed;
-
-                 if (boardingPassDetails != null)
-                 {
-                     DisplayBoardingPass(boardingPassDetails);
-                     OnPhotoCaptured?.Invoke(); // Invoke the OnPhotoCaptured event
-                 }
-                 else
-                 {
-                     VerificationMessage.Text = "Verification failed. Please try again.";
-                 }*/
+                //if (boardingPassDetails != null)
+                //{
+                //    DisplayBoardingPass(boardingPassDetails);
+                //    OnPhotoCaptured?.Invoke(); // Invoke the OnPhotoCaptured event
+                //}
+                //else
+                //{
+                //    VerificationMessage.Text = "Verification failed. Please try again.";
+                //}
             }
             catch (TaskCanceledException)
             {
@@ -188,39 +219,39 @@ namespace CheckInKiosk
             }
         }
 
-        private async Task<string> VerifyImageAsync(byte[] imageData, CancellationToken token)
-        {
-            try
-            {
-                using (HttpClient client = new HttpClient())
-                {
-                    // Replace with your API endpoint
-                    string apiUrl = "https://your-api-endpoint.com/verify";
+        //private async Task<string> VerifyImageAsync(byte[] imageData, CancellationToken token)
+        //{
+        //    try
+        //    {
+        //        using (HttpClient client = new HttpClient())
+        //        {
+        //            // Replace with your API endpoint
+        //            string apiUrl = "https://your-api-endpoint.com/verify";
 
-                    // Send the image to the API
-                    HttpContent content = new ByteArrayContent(imageData);
-                    content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+        //            // Send the image to the API
+        //            HttpContent content = new ByteArrayContent(imageData);
+        //            content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
 
-                    HttpResponseMessage response = await client.PostAsync(apiUrl, content, token);
+        //            HttpResponseMessage response = await client.PostAsync(apiUrl, content, token);
 
-                    if (response.IsSuccessStatusCode)
-                    {
-                        // Assuming the API returns the boarding pass details as a string
-                        return await response.Content.ReadAsStringAsync();
-                    }
-                    else
-                    {
-                        MessageBox.Show("Failed to verify the image.");
-                        return null;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error calling API: {ex.Message}");
-                return null;
-            }
-        }
+        //            if (response.IsSuccessStatusCode)
+        //            {
+        //                // Assuming the API returns the boarding pass details as a string
+        //                return await response.Content.ReadAsStringAsync();
+        //            }
+        //            else
+        //            {
+        //                MessageBox.Show("Failed to verify the image.");
+        //                return null;
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        MessageBox.Show($"Error calling API: {ex.Message}");
+        //        return null;
+        //    }
+        //}
 
         private void DisplayBoardingPass(string details)
         {

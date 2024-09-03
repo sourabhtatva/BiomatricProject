@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "kthTsSJOTs2VibBtX009s+yUGKHUtF617zuxwtGIllqjInv6p9ji4iHMIGLDS80UZ5DGgaMbR9p+JrxEQv3PCw==",
+  "dgSpecHash": "bqgdIur1y8R9OqduDtS/qcXUqCbWCM9NcYmg9N2yMNrZZicSHfWhu09VQ1Jd8EgWywG2ZeGKuREhh9vlBNO4BA==",
   "success": true,
-  "projectFilePath": "C:\\Users\\pca244\\source\\repos\\BiometricAuthenticationAPI\\BiometricAuthenticationAPI\\BiometricAuthenticationAPI.csproj",
+  "projectFilePath": "C:\\Users\\pca244\\Documents\\GitHub\\BiomatricProject\\BiometricAuthenticationAPI\\BiometricAuthenticationAPI.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\pca244\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
     "C:\\Users\\pca244\\.nuget\\packages\\azure.identity\\1.11.4\\azure.identity.1.11.4.nupkg.sha512",
