@@ -1,0 +1,6 @@
+@BiometricAuthenticationAPI_HostAddress = http://localhost:5062
+
+GET {{BiometricAuthenticationAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

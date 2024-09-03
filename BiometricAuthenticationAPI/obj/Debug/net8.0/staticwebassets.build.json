@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "Y0skYlM2+Ql+PNtKfhl6FrDKO+DeeaIHddSAOrDK8ew=",
+  "Source": "BiometricAuthenticationAPI",
+  "BasePath": "_content/BiometricAuthenticationAPI",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

@@ -1,0 +1,1 @@
+C:\Users\ptdrd\source\repos\CheckInKiosk\CheckInKiosk\obj\Debug\net8.0-windows7.0\CheckInKiosk.csproj.AssemblyReference.cache
