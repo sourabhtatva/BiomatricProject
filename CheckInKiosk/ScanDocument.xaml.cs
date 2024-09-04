@@ -7,9 +7,10 @@ using System.Threading.Tasks;
 using Windows.Services.Maps;
 using Windows.Web.Http;
 using System.Text.Json;
-using BiometricAuthenticationAPI.Data.Models;
+using CheckInKiosk.Utils.Models;
 using CheckInKiosk.Utils.Services;
 using CheckInKiosk.Utils.Constants;
+using System.Windows.Media.Imaging;
 
 namespace CheckInKiosk
 {
@@ -18,6 +19,8 @@ namespace CheckInKiosk
         public event Action OnScanSuccess;
         public event Action OnRetry;
         private HttpClientService _httpClientService;
+
+        private string _selectedImagePath;
 
         public ScanDocument()
         {
@@ -40,6 +43,21 @@ namespace CheckInKiosk
         {
             // Show the text field when a document type is selected
             AdditionalInfoTextBox.Visibility = Visibility.Visible;
+            ImageUploadPanel.Visibility = Visibility.Visible;
+        }
+
+        private void OnChooseImageClick(object sender, RoutedEventArgs e)
+        {
+            Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "Image files (*.jpg, *.jpeg, *.png)|*.jpg;*.jpeg;*.png"
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                _selectedImagePath = openFileDialog.FileName;
+                UploadedImage.Source = new BitmapImage(new Uri(_selectedImagePath));
+            }
         }
 
         private async void OnSubmitClick(object sender, RoutedEventArgs e)
@@ -61,12 +79,19 @@ namespace CheckInKiosk
 
             try
             {
+                byte[] imageBytes = null;
+
+                if (!string.IsNullOrEmpty(_selectedImagePath))
+                {
+                    imageBytes = System.IO.File.ReadAllBytes(_selectedImagePath);
+                }
 
                 // Create the request object
-                var request = new DocumentDetailRequest
+                var request = new DocumentDetailUI
                 {
                     DocumentNumber = additionalInfo,
-                    DocumentType = documentType
+                    DocumentType = documentType,
+                    DocumentImage = imageBytes
                 };
 
                 // Serialize request object to JSON

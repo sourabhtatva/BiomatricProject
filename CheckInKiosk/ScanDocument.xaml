@@ -110,6 +110,13 @@
 
             <!-- TextBox for additional information, initially hidden -->
             <TextBox x:Name="AdditionalInfoTextBox" Visibility="Collapsed"/>
+            
+            <StackPanel x:Name="ImageUploadPanel" Visibility="Collapsed">
+                <TextBlock Text="Upload Image" Foreground="White" FontSize="18" Margin="10"/>
+                <Button Content="Choose Image" Click="OnChooseImageClick" Margin="10"/>
+                <Image x:Name="UploadedImage" Height="100" Width="100" Margin="10"/>
+            </StackPanel>
+            
             <Button Content="Submit Document" Click="OnSubmitClick"/>
 
             <!-- Verification and Retry Messages -->
