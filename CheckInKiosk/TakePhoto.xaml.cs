@@ -1,9 +1,11 @@
 ﻿using AForge.Video;
 using AForge.Video.DirectShow;
-using Azure.Core;
 using BiometricAuthenticationAPI.Data.Models;
 using CheckInKiosk.Utils.Constants;
+using CheckInKiosk.Utils.Models;
 using CheckInKiosk.Utils.Services;
+using Emgu.CV;
+using Emgu.CV.Structure;
 using System;
 using System.Drawing;
 using System.IO;
@@ -14,6 +16,8 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
+using Windows.Media.Protection.PlayReady;
 
 namespace CheckInKiosk
 {
@@ -22,17 +26,29 @@ namespace CheckInKiosk
         private FilterInfoCollection videoDevices;
         private VideoCaptureDevice videoSource;
         private Bitmap capturedImage;
-        private CancellationTokenSource cts; // For cancelling ongoing tasks
+        private CancellationTokenSource cts;
         private HttpClientService _httpClientService;
+
+
+        private DispatcherTimer captureTimer;
+        private bool faceDetected = false;
+
+        // Emgu CV objects
+        private CascadeClassifier faceCascade;
 
         public event Action OnPhotoCaptured;
 
         public TakePhoto()
         {
             InitializeComponent();
+            faceCascade = new CascadeClassifier(UIConstants.Haarcascade_Frontalface_Path);
+
+            // Initialize the timer
+            captureTimer = new DispatcherTimer();
+            captureTimer.Interval = TimeSpan.FromSeconds(3); // Set delay for 10 seconds
+            captureTimer.Tick += CaptureTimer_Tick;
         }
 
-        // Constructor with HttpClientService for manual instantiation
         public TakePhoto(HttpClientService httpClientService) : this()
         {
             _httpClientService = httpClientService;
@@ -42,6 +58,15 @@ namespace CheckInKiosk
         public void SetHttpClientService(HttpClientService httpClientService)
         {
             _httpClientService = httpClientService;
+        }
+
+        private void CaptureTimer_Tick(object sender, EventArgs e)
+        {
+            if (faceDetected && capturedImage != null)
+            {
+                captureTimer.Stop();
+                CaptureAndVerify(); // Trigger the capture click method
+            }
         }
 
         public void StartCamera()
@@ -81,14 +106,18 @@ namespace CheckInKiosk
                 }
                 catch (Exception ex)
                 {
-                    // Log or handle exception as necessary
+                    MessageBox.Show($"Error stopping camera: {ex.Message}");
                 }
                 finally
                 {
-                    videoSource = null; // Ensure the videoSource is set to null
+                    videoSource = null;
                 }
             }
+
+            // Ensure the timer is stopped
+            captureTimer.Stop();
         }
+
 
         private void OnNewFrame(object sender, NewFrameEventArgs eventArgs)
         {
@@ -101,11 +130,30 @@ namespace CheckInKiosk
 
                 capturedImage = (Bitmap)eventArgs.Frame.Clone();
 
-                // Update the ImagePreview on the UI thread
-                ImagePreview.Dispatcher.Invoke(() =>
+                using (var imageFrame = capturedImage.ToImage<Bgr, byte>())
                 {
-                    ImagePreview.Source = BitmapToImageSource(capturedImage);
-                });
+                    var grayFrame = imageFrame.Convert<Gray, byte>();
+                    var faces = faceCascade.DetectMultiScale(grayFrame, 1.1, 10, System.Drawing.Size.Empty);
+
+                    foreach (var face in faces)
+                    {
+                        imageFrame.Draw(face, new Bgr(Color.Red), 2);
+                    }
+
+                    WebcamFeed.Dispatcher.Invoke(() =>
+                    {
+                        WebcamFeed.Source = BitmapToImageSource(imageFrame.ToBitmap());
+                    });
+
+                    if (faces.Length > 0)
+                    {
+                        if (!faceDetected)
+                        {
+                            faceDetected = true;
+                            captureTimer.Start(); // Start the timer when a face is detected
+                        }
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -113,15 +161,16 @@ namespace CheckInKiosk
             }
         }
 
-        private BitmapImage BitmapToImageSource(Bitmap bitmap)
+
+        private static BitmapSource BitmapToImageSource(Bitmap bitmap)
         {
-            using (MemoryStream memory = new MemoryStream())
+            using (var memoryStream = new MemoryStream())
             {
-                bitmap.Save(memory, System.Drawing.Imaging.ImageFormat.Bmp);
-                memory.Position = 0;
+                bitmap.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Bmp);
+                memoryStream.Seek(0, SeekOrigin.Begin);
                 BitmapImage bitmapImage = new BitmapImage();
                 bitmapImage.BeginInit();
-                bitmapImage.StreamSource = memory;
+                bitmapImage.StreamSource = memoryStream;
                 bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
                 bitmapImage.EndInit();
                 return bitmapImage;
@@ -129,25 +178,15 @@ namespace CheckInKiosk
         }
 
 
-        private async void OnCaptureClick(object sender, RoutedEventArgs e)
+        private void CaptureAndVerify()
         {
-            if (capturedImage == null)
-            {
-                MessageBox.Show("No image captured.");
-                return;
-            }
-
-            // Hide all elements except the Loading Indicator and Verification Message
-            ImagePreview.Visibility = Visibility.Collapsed;
-            ((Button)sender).Visibility = Visibility.Collapsed;
+            // Hide the WebcamFeed and other UI elements
+            WebcamFeed.Visibility = Visibility.Collapsed;
 
             // Show Verification Message and Loading Indicator
             VerificationMessage.Text = "We are verifying your identity. Please wait...";
             VerificationMessage.Visibility = Visibility.Visible;
             LoadingIndicator.Visibility = Visibility.Visible;
-
-            // Add a delay to ensure UI updates are visible
-            await Task.Delay(500); // Adjust the delay duration as needed
 
             // Convert captured image to byte array
             byte[] imageData = BitmapToByteArray(capturedImage);
@@ -157,57 +196,47 @@ namespace CheckInKiosk
             cts = new CancellationTokenSource();
             var token = cts.Token;
 
-            try
+            Task.Run(async () =>
             {
-                ////For Demo
-
-                //DisplayBoardingPass(null); // Pass null as we are using static data
-
-                //// Simulate a delay for API verification
-                //await Task.Delay(1000); // Simulate API processing time
-
-                //// Hide Loading Indicator and show the static boarding pass
-                //VerificationMessage.Visibility = Visibility.Collapsed;
-                //LoadingIndicator.Visibility = Visibility.Collapsed;
-                var request = new MatchFacesRequest()
+                try
                 {
-                    ScannedImage = imageData,
-                    ClickedImage = imageData
-                };
+                    var verificationSuccess = await VerifyImageAsync(imageData);
 
-                 //var boardingPassDetails = await VerifyImageAsync(imageData, token);
-                var jsonContent = new StringContent(
-                    System.Text.Json.JsonSerializer.Serialize(request),
-                    System.Text.Encoding.UTF8,
-                    UIConstants.CONTENT_TYPE
-                );
-                var responseData = await _httpClientService.PostAsync(APIEndpoint.FACE_MATCHING_API, jsonContent);
-                // Parse the JSON response and extract the 'data' field as a boolean
-                var jsonDocument = JsonDocument.Parse(responseData);
-                var data = jsonDocument.RootElement.GetProperty("data");
+                    Dispatcher.Invoke(() =>
+                    {
+                        if (verificationSuccess)
+                        {
+                            // Show success message
+                            MessageBoxResult result = MessageBox.Show("Check-in complete. Have a great flight!", "Check-In Complete", MessageBoxButton.OK, MessageBoxImage.Information);
 
-                LoadingIndicator.Visibility = Visibility.Collapsed;
-
-                //if (boardingPassDetails != null)
-                //{
-                //    DisplayBoardingPass(boardingPassDetails);
-                //    OnPhotoCaptured?.Invoke(); // Invoke the OnPhotoCaptured event
-                //}
-                //else
-                //{
-                //    VerificationMessage.Text = "Verification failed. Please try again.";
-                //}
-            }
-            catch (TaskCanceledException)
-            {
-                MessageBox.Show("The verification process was canceled.");
-                LoadingIndicator.Visibility = Visibility.Collapsed;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error during verification: {ex.Message}");
-                LoadingIndicator.Visibility = Visibility.Collapsed;
-            }
+                            if (result == MessageBoxResult.OK)
+                            {
+                                StopCamera();
+                                Application.Current.Shutdown();
+                            }
+                        }
+                        else
+                        {
+                            // Show error message
+                            ManualCheckInPanel.Visibility = Visibility.Visible;
+                        }
+                    });
+                }
+                catch (TaskCanceledException)
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        MessageBox.Show("The verification process was canceled.");
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        MessageBox.Show($"Error during verification: {ex.Message}");
+                    });
+                }
+            });
         }
 
         private byte[] BitmapToByteArray(Bitmap bitmap)
@@ -219,75 +248,54 @@ namespace CheckInKiosk
             }
         }
 
-        //private async Task<string> VerifyImageAsync(byte[] imageData, CancellationToken token)
-        //{
-        //    try
-        //    {
-        //        using (HttpClient client = new HttpClient())
-        //        {
-        //            // Replace with your API endpoint
-        //            string apiUrl = "https://your-api-endpoint.com/verify";
-
-        //            // Send the image to the API
-        //            HttpContent content = new ByteArrayContent(imageData);
-        //            content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
-
-        //            HttpResponseMessage response = await client.PostAsync(apiUrl, content, token);
-
-        //            if (response.IsSuccessStatusCode)
-        //            {
-        //                // Assuming the API returns the boarding pass details as a string
-        //                return await response.Content.ReadAsStringAsync();
-        //            }
-        //            else
-        //            {
-        //                MessageBox.Show("Failed to verify the image.");
-        //                return null;
-        //            }
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        MessageBox.Show($"Error calling API: {ex.Message}");
-        //        return null;
-        //    }
-        //}
-
-        private void DisplayBoardingPass(string details)
+        private async Task<bool> VerifyImageAsync(byte[] imageData)
         {
-            // Static demo boarding pass details
-            string demoBoardingPass = "Boarding Pass\n" +
-                "Passenger Name: John Doe\n" +
-                "Flight Number: XY123\n" +
-                "Departure: New York (JFK)\n" +
-                "Arrival: Los Angeles (LAX)\n" +
-                "Gate: 22\n" +
-                "Seat: 12A\n" +
-                "Boarding Time: 10:45 AM\n" +
-                "Thank you for flying with us!";
-
-            BoardingPassPanel.Visibility = Visibility.Visible;
-            VerificationMessage.Visibility = Visibility.Collapsed;
-            BoardingPassDetails.Text = demoBoardingPass;
-        }
-
-        private void OnFinishClick(object sender, RoutedEventArgs e)
-        {
-            // Show a MessageBox with a message and an OK button
-            MessageBoxResult result = MessageBox.Show("Check-in complete. Have a great flight!",
-                                                      "Check-In Complete",
-                                                      MessageBoxButton.OK,
-                                                      MessageBoxImage.Information);
-
-            // Check if the user clicked OK
-            if (result == MessageBoxResult.OK)
+            try
             {
-                // Close the application
-                Application.Current.Shutdown();
+                var request = new MatchFacesUI()
+                {
+                    ScannedImage = imageData,
+                    ClickedImage = imageData
+                };
+
+                var jsonContent = new StringContent(
+                    System.Text.Json.JsonSerializer.Serialize(request),
+                    System.Text.Encoding.UTF8,
+                    UIConstants.CONTENT_TYPE
+                );
+
+                // Use the custom HttpClientService to send the POST request
+                var responseData = await _httpClientService.PostAsync(APIEndpoint.FACE_MATCHING_API, jsonContent);
+
+                // Check if responseData is null, indicating a failed request
+                if (responseData == null)
+                {
+                    return false;
+                }
+
+                // Parse the response data to extract the 'data' field
+                var jsonDocument = JsonDocument.Parse(responseData);
+                var data = jsonDocument.RootElement.GetProperty("data").GetBoolean();
+
+                return data;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error calling API: {ex.Message}");
+                return false;
+            }
+            finally
+            {
+                // Always hide the loading indicator after the API call completes
+                Dispatcher.Invoke(() => LoadingIndicator.Visibility = Visibility.Collapsed);
             }
         }
 
-        // Handle cleanup when the UserControl is unloaded
+        private void OnOkayClick(object sender, RoutedEventArgs e)
+        {
+            Application.Current.Shutdown();
+        }
+
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
             StopCamera();

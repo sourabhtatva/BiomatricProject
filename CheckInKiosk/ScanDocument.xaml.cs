@@ -87,7 +87,7 @@ namespace CheckInKiosk
                 }
 
                 // Create the request object
-                var request = new DocumentDetailUI
+                var request = new DocumentDetailUI()
                 {
                     DocumentNumber = additionalInfo,
                     DocumentType = documentType,
