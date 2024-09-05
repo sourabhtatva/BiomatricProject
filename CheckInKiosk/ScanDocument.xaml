@@ -54,6 +54,13 @@
 
             <!-- Document Type ComboBox and Error Message -->
             <StackPanel Margin="10">
+                <TextBlock Text="Select Document Type" 
+            Foreground="White" 
+            FontSize="24" 
+            HorizontalAlignment="Center" 
+            VerticalAlignment="Center" 
+            Margin="10" 
+            FontWeight="Bold"/>
                 <ComboBox x:Name="DocumentTypeComboBox" 
                           Width="300" 
                           FontSize="18"

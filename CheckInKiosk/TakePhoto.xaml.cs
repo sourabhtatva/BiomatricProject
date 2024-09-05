@@ -187,6 +187,7 @@ namespace CheckInKiosk
             VerificationMessage.Visibility = Visibility.Visible;
             LoadingOverlay.Visibility = Visibility.Visible;
             CapturePhotoTitle.Visibility = Visibility.Collapsed;
+            MainContent.Visibility = Visibility.Collapsed;
 
             string documentScannedImageBase64String = ApplicationData.DocumentScannedImage;
             string clickedImageDataBase64String = BitmapToBase64String(capturedImage);
