@@ -49,7 +49,7 @@
         <!-- Main StackPanel for document submission -->
         <StackPanel x:Name="MainStackPanel" VerticalAlignment="Center" HorizontalAlignment="Center">
             <!-- PNG Image -->
-            <Image Source="D:\Projects\Projects\CheckInKiosk\Utils\Resources\Images\pngegg.png" Width="100" Height="100" Margin="0,0,0,20" HorizontalAlignment="Center"/>
+            <Image Source="Utils\Resources\Images\pngegg.png" Width="100" Height="100" Margin="0,0,0,20" HorizontalAlignment="Center"/>
 
 
             <!-- Document Type ComboBox and Error Message -->

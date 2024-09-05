@@ -61,7 +61,7 @@ namespace CheckInKiosk {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/CheckInKiosk;V1.0.0.0;component/matchandenroll.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/CheckInKiosk;component/matchandenroll.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\MatchAndEnroll.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);
