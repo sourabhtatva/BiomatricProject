@@ -8,6 +8,6 @@ namespace CheckInKiosk.Utils.Resources.ApplicationData
 {
     public static class ApplicationData
     {
-        public static string Base64Image { get; set; }
+        public static string DocumentScannedImage { get; set; }
     }
 }

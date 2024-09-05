@@ -5,3 +5,4 @@
 /.vs
 /CheckInKiosk/bin/Debug/net8.0-windows10.0.18362.0
 /BiometricAuthenticationAPI/obj/Debug/net8.0/BiometricAuthenticationAPI.AssemblyInfo.cs
+/BiometricAuthenticationAPI/appsettings.json

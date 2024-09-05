@@ -188,7 +188,7 @@ namespace CheckInKiosk
             LoadingOverlay.Visibility = Visibility.Visible;
             CapturePhotoTitle.Visibility = Visibility.Collapsed;
 
-            string base64Image = ApplicationData.Base64Image;
+            string documentScannedImageBase64String = ApplicationData.DocumentScannedImage;
             string clickedImageDataBase64String = BitmapToBase64String(capturedImage);
 
             // Cancel any previous ongoing task
@@ -200,7 +200,7 @@ namespace CheckInKiosk
             {
                 try
                 {
-                    var verificationSuccess = await VerifyImageAsync(clickedImageDataBase64String, base64Image);
+                    var verificationSuccess = await VerifyImageAsync(clickedImageDataBase64String, documentScannedImageBase64String);
 
                     Dispatcher.Invoke(() =>
                     {
@@ -238,18 +238,18 @@ namespace CheckInKiosk
             }, token); // Pass the cancellation token here
         }
 
-        private async Task<bool> VerifyImageAsync(string imageData, string scanImage)
+        private async Task<bool> VerifyImageAsync(string clickImage, string scanImage)
         {
             try
             {
                 var request = new MatchFacesRequestUI()
                 {
-                    ScannedImage = imageData,
-                    ClickedImage = scanImage
+                    ClickedImage = clickImage,
+                    ScannedImage = scanImage
                 };
 
                 var jsonContent = new StringContent(
-                    System.Text.Json.JsonSerializer.Serialize(request),
+                    JsonSerializer.Serialize(request),
                     System.Text.Encoding.UTF8,
                     UIConstants.CONTENT_TYPE
                 );
@@ -265,9 +265,10 @@ namespace CheckInKiosk
 
                 // Parse the response data to extract the 'data' field
                 var jsonDocument = JsonDocument.Parse(responseData);
-                var data = jsonDocument.RootElement.GetProperty("data").GetBoolean();
+                var data = jsonDocument.RootElement.GetProperty("data");
+                bool isVerified = data.GetProperty("isIdentical").GetBoolean();
 
-                return data;
+                return isVerified;
             }
             catch (TaskCanceledException)
             {

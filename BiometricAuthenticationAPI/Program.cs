@@ -14,11 +14,12 @@ builder.Services.AddHttpClient<AzureFaceService>(client =>
 });
 
 // Add services to the container.
-builder.Services.AddSingleton<IAzureFaceService, AzureFaceService>();
+//builder.Services.AddSingleton<IAzureFaceService, AzureFaceService>();
+builder.Services.AddSingleton<IAwsFaceService, AwsFaceService>();
 builder.Services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
+builder.Services.AddSingleton<IMemoryCacheService, MemoryCacheService>();
 builder.Services.AddScoped<IUserIdentificationDataService, UserIdentificationDataService>();
 builder.Services.AddScoped<IUserIdentificationTypeService, UserIdentificationTypeService>();
-//builder.Services.AddScoped<IFaceDataService, FaceDataService>();
 builder.Services.AddScoped<IRecognitionLogService, RecognitionLogService>();
 builder.Services.AddTransient<IUserIdentificationDataRepository, UserIdentificationDataRepository>();
 builder.Services.AddTransient<IFaceDataRepository, FaceDataRepository>();
@@ -29,6 +30,8 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddMemoryCache();
+
 
 var app = builder.Build();
 

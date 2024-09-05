@@ -4,5 +4,6 @@
     {
         public bool IsIdentical { get; set; }
         public float Confidence { get; set; }
+        public float Similarity { get; set; }
     }
 }

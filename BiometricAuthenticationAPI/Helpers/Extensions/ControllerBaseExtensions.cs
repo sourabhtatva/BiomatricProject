@@ -9,7 +9,7 @@ namespace BiometricAuthenticationAPI.Helpers.Extensions
     /// </summary>
     public static class ControllerBaseExtensions
     {
-        public static ObjectResult SuccessResult(this ControllerBase controller, object data, string? message = null)
+        public static ObjectResult SuccessResult(this ControllerBase controller, object? data, string? message = null)
         {
             var response = new BaseResponse
             {

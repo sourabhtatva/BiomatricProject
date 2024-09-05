@@ -83,23 +83,23 @@ namespace CheckInKiosk
 
             try
             {
-                string base64Image = null;
+                string documentScannedImagebase64Image = string.Empty;
 
                 if (!string.IsNullOrEmpty(_selectedImagePath))
                 {
                     Bitmap bitmap = new Bitmap(_selectedImagePath);
-                    base64Image = BitmapToBase64String(bitmap);
+                    documentScannedImagebase64Image = BitmapToBase64String(bitmap);
                 }
 
                 // Store Base64 image data
-                ApplicationData.Base64Image = base64Image;
+                ApplicationData.DocumentScannedImage = documentScannedImagebase64Image;
 
                 // Create the request object
                 var request = new DocumentDetailRequestUI()
                 {
                     DocumentNumber = additionalInfo,
                     DocumentType = documentType,
-                    DocumentImage = base64Image
+                    DocumentImage = documentScannedImagebase64Image
                 };
 
                 // Serialize request object to JSON

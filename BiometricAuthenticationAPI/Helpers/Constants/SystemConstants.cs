@@ -17,7 +17,7 @@
             public static readonly string CONTENT_TYPE = "application/json";
             public static readonly string AWS_ACCESS_KEY = "AKIARGBQEWKX33DB3RQD";
             public static readonly string AWS_SECRET_KEY = "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";
-            public static readonly float AWS_THRESHOLD_VALUE = 70F;
+            public static readonly float AWS_THRESHOLD_VALUE = 90F;
         }
 
         public static class UserIdentificationData
