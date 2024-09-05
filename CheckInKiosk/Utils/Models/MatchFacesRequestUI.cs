@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace CheckInKiosk.Utils.Models
 {
-    public class MatchFacesUI
+    public class MatchFacesRequestUI
     {
-        public required byte[] ScannedImage { get; set; }
-        public required byte[] ClickedImage { get; set; }
+        public required string ScannedImage { get; set; }
+        public required string ClickedImage { get; set; }
     }
 }

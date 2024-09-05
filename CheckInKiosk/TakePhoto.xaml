@@ -5,83 +5,55 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
 
-        <!-- Webcam Feed with Face Detection -->
-        <Border Grid.Row="1" 
-                Grid.Column="0" 
-                BorderBrush="#3498DB" 
-                BorderThickness="2"
-                Margin="20"
-                HorizontalAlignment="Center" 
-                VerticalAlignment="Center">
-            <Image x:Name="WebcamFeed" 
-                   Width="350" 
-                   Height="340" 
-                   Stretch="UniformToFill"/>
-        </Border>
+        <!-- Background Grid for centering content -->
+        <Grid>
+            <!-- Center Image -->
+            <Image x:Name="CenterImage" 
+                   Source="C:\Users\ptdrd\Downloads\bm2.png" 
+                   Visibility="Visible"
+                   Width="82" 
+                   Height="70" 
+                   HorizontalAlignment="Center" 
+                   VerticalAlignment="Top"
+                   Margin="0,20,0,0" />
 
-        <!-- TextBlock and Capture Button -->
-        <StackPanel Grid.Row="2" 
-                    Grid.Column="0" 
-                    VerticalAlignment="Center" 
-                    HorizontalAlignment="Center" 
-                    Orientation="Vertical">
-            <TextBlock Text="Please capture your photo" 
-                       TextAlignment="Center" 
-                       Foreground="White" 
-                       FontSize="20" 
-                       FontWeight="Bold" 
-                       Margin="10,0,10,10"/>
+            <!-- Main Content with Webcam Feed and Other Elements -->
+            <StackPanel x:Name="MainContent" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="Visible">
+                <Border BorderBrush="#3498DB" BorderThickness="2" Margin="20" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Image x:Name="WebcamFeed" Width="350" Height="340" Stretch="UniformToFill"/>
+                </Border>
 
-            <!-- Verification Message -->
-            <TextBlock x:Name="VerificationMessage" 
-                       Foreground="White" 
-                       FontSize="16" 
-                       Margin="10,0,10,10" 
-                       Visibility="Collapsed"
-                       TextAlignment="Center"/>
+                <TextBlock x:Name="CapturePhotoTitle" Text="Please capture your photo" TextAlignment="Center" Foreground="White" FontSize="20" FontWeight="Bold" Margin="10,0,10,10"/>
 
-            <!-- Loading Indicator -->
-            <ProgressBar x:Name="LoadingIndicator" 
-                         IsIndeterminate="True" 
-                         Height="20" 
-                         Width="200" 
-                         Margin="10,0,10,10" 
-                         Visibility="Collapsed"
-                         HorizontalAlignment="Center"
-                         Foreground="#3498DB"/>
+                <!-- Verification Message -->
+                <TextBlock x:Name="VerificationMessage" Foreground="White" FontSize="16" Margin="10,0,10,10" Visibility="Collapsed" TextAlignment="Center"/>
 
-            <!-- Error Message Panel -->
-            <StackPanel x:Name="ManualCheckInPanel" 
-                        VerticalAlignment="Center" 
-                        HorizontalAlignment="Center" 
-                        Width="600" 
-                        Visibility="Collapsed">
-                <TextBlock TextAlignment="Center" 
-                           Foreground="White" 
-                           FontSize="20" 
-                           FontWeight="Regular" 
-                           Margin="0,0,0,20" 
-                           TextWrapping="Wrap">
-                    The details you entered are incorrect. You can proceed with manual check-in or contact our agent for assistance.
-                </TextBlock>
-                <Button Content="Okay" 
-                        Width="150" 
-                        Height="50" 
-                        Background="White" 
-                        Foreground="Black" 
-                        FontSize="18" 
-                        FontWeight="Bold" 
-                        Click="OnOkayClick" 
-                        HorizontalAlignment="Center"/>
+                <!-- Manual Check-In Error Panel -->
+                <StackPanel x:Name="ManualCheckInPanel" VerticalAlignment="Center" HorizontalAlignment="Center" Width="600" Visibility="Collapsed">
+                    <TextBlock TextAlignment="Center" Foreground="White" FontSize="20" Margin="0,0,0,20" TextWrapping="Wrap">
+                        The details you entered are incorrect. You can proceed with manual check-in or contact our agent for assistance.
+                    </TextBlock>
+                    <Button Content="Okay" Width="150" Height="50" Background="White" Foreground="Black" FontSize="18" FontWeight="Bold" Click="OnOkayClick" HorizontalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Check-In Complete Message -->
+                <StackPanel x:Name="CheckInComplete" VerticalAlignment="Center" HorizontalAlignment="Center" Width="600" Visibility="Collapsed">
+                    <TextBlock TextAlignment="Center" Foreground="White" FontSize="20" Margin="0,0,0,20" TextWrapping="Wrap">
+                        Check-in complete. Have a great flight!
+                    </TextBlock>
+                    <Button Content="Okay" Width="150" Height="50" Background="White" Foreground="Black" FontSize="18" FontWeight="Bold" Click="OnOkayClick" HorizontalAlignment="Center"/>
+                </StackPanel>
             </StackPanel>
-        </StackPanel>
+        </Grid>
+
+        <!-- Loading Indicator and Message Centered -->
+        <Grid x:Name="LoadingOverlay" Visibility="Collapsed">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                <ProgressBar IsIndeterminate="True" Height="50" Width="50" />
+                <TextBlock Foreground="White" FontSize="18" Margin="10" HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </UserControl>
