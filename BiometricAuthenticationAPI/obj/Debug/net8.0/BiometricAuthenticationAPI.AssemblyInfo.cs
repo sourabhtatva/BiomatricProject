@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BiometricAuthenticationAPI")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4b7795cee60c400f1d2c047f64edd7e31c2e6266")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d7675a3f6e988757f6256224bdc9d1db4bb95fb6")]
 [assembly: System.Reflection.AssemblyProductAttribute("BiometricAuthenticationAPI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BiometricAuthenticationAPI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

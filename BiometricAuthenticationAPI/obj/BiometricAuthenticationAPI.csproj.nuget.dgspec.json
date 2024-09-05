@@ -1,24 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\ptdrd\\Documents\\GitHub\\BiomatricProject\\BiometricAuthenticationAPI\\BiometricAuthenticationAPI.csproj": {}
+    "C:\\Users\\naman\\Documents\\Projects\\BiometricAuthenticationAPI\\BiometricAuthenticationAPI.csproj": {}
   },
   "projects": {
-    "C:\\Users\\ptdrd\\Documents\\GitHub\\BiomatricProject\\BiometricAuthenticationAPI\\BiometricAuthenticationAPI.csproj": {
+    "C:\\Users\\naman\\Documents\\Projects\\BiometricAuthenticationAPI\\BiometricAuthenticationAPI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\ptdrd\\Documents\\GitHub\\BiomatricProject\\BiometricAuthenticationAPI\\BiometricAuthenticationAPI.csproj",
+        "projectUniqueName": "C:\\Users\\naman\\Documents\\Projects\\BiometricAuthenticationAPI\\BiometricAuthenticationAPI.csproj",
         "projectName": "BiometricAuthenticationAPI",
-        "projectPath": "C:\\Users\\ptdrd\\Documents\\GitHub\\BiomatricProject\\BiometricAuthenticationAPI\\BiometricAuthenticationAPI.csproj",
-        "packagesPath": "C:\\Users\\ptdrd\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\ptdrd\\Documents\\GitHub\\BiomatricProject\\BiometricAuthenticationAPI\\obj\\",
+        "projectPath": "C:\\Users\\naman\\Documents\\Projects\\BiometricAuthenticationAPI\\BiometricAuthenticationAPI.csproj",
+        "packagesPath": "C:\\Users\\naman\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\naman\\Documents\\Projects\\BiometricAuthenticationAPI\\obj\\",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\ptdrd\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Users\\naman\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -50,6 +46,10 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
+            "AWSSDK.Rekognition": {
+              "target": "Package",
+              "version": "[3.7.400.14, )"
+            },
             "Dapper": {
               "target": "Package",
               "version": "[2.1.35, )"

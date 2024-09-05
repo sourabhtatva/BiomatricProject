@@ -2,6 +2,35 @@
   "version": 3,
   "targets": {
     "net8.0": {
+      "AWSSDK.Core/3.7.400.14": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/AWSSDK.Core.dll": {
+            "related": ".pdb;.xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/AWSSDK.Core.dll": {
+            "related": ".pdb;.xml"
+          }
+        }
+      },
+      "AWSSDK.Rekognition/3.7.400.14": {
+        "type": "package",
+        "dependencies": {
+          "AWSSDK.Core": "[3.7.400.14, 4.0.0)"
+        },
+        "compile": {
+          "lib/net8.0/AWSSDK.Rekognition.dll": {
+            "related": ".pdb;.xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/AWSSDK.Rekognition.dll": {
+            "related": ".pdb;.xml"
+          }
+        }
+      },
       "Azure.Core/1.38.0": {
         "type": "package",
         "dependencies": {
@@ -689,6 +718,67 @@
     }
   },
   "libraries": {
+    "AWSSDK.Core/3.7.400.14": {
+      "sha512": "ZnlENxTAX9V6yMg0Ah2f8L/9QngRjf9z+4I2gJIzYVmf7w2Vp48t9ZmWMolEbg8Durmf2uVY8gHphqUd0BlHqQ==",
+      "type": "package",
+      "path": "awssdk.core/3.7.400.14",
+      "hasTools": true,
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "awssdk.core.3.7.400.14.nupkg.sha512",
+        "awssdk.core.nuspec",
+        "images/AWSLogo.png",
+        "lib/net35/AWSSDK.Core.dll",
+        "lib/net35/AWSSDK.Core.pdb",
+        "lib/net35/AWSSDK.Core.xml",
+        "lib/net45/AWSSDK.Core.dll",
+        "lib/net45/AWSSDK.Core.pdb",
+        "lib/net45/AWSSDK.Core.xml",
+        "lib/net8.0/AWSSDK.Core.dll",
+        "lib/net8.0/AWSSDK.Core.pdb",
+        "lib/net8.0/AWSSDK.Core.xml",
+        "lib/netcoreapp3.1/AWSSDK.Core.dll",
+        "lib/netcoreapp3.1/AWSSDK.Core.pdb",
+        "lib/netcoreapp3.1/AWSSDK.Core.xml",
+        "lib/netstandard2.0/AWSSDK.Core.dll",
+        "lib/netstandard2.0/AWSSDK.Core.pdb",
+        "lib/netstandard2.0/AWSSDK.Core.xml",
+        "tools/account-management.ps1"
+      ]
+    },
+    "AWSSDK.Rekognition/3.7.400.14": {
+      "sha512": "VQsruPJMbp0yXeiAqRjdYcspI5t4wYWf9sDlBNK3v072a90Zo3aGmHWgjFoS1yLnc7o3h+NNL37nQoq/BMhgoQ==",
+      "type": "package",
+      "path": "awssdk.rekognition/3.7.400.14",
+      "hasTools": true,
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "analyzers/dotnet/cs/AWSSDK.Rekognition.CodeAnalysis.dll",
+        "analyzers/dotnet/cs/SharedAnalysisCode.dll",
+        "awssdk.rekognition.3.7.400.14.nupkg.sha512",
+        "awssdk.rekognition.nuspec",
+        "images/AWSLogo.png",
+        "lib/net35/AWSSDK.Rekognition.dll",
+        "lib/net35/AWSSDK.Rekognition.pdb",
+        "lib/net35/AWSSDK.Rekognition.xml",
+        "lib/net45/AWSSDK.Rekognition.dll",
+        "lib/net45/AWSSDK.Rekognition.pdb",
+        "lib/net45/AWSSDK.Rekognition.xml",
+        "lib/net8.0/AWSSDK.Rekognition.dll",
+        "lib/net8.0/AWSSDK.Rekognition.pdb",
+        "lib/net8.0/AWSSDK.Rekognition.xml",
+        "lib/netcoreapp3.1/AWSSDK.Rekognition.dll",
+        "lib/netcoreapp3.1/AWSSDK.Rekognition.pdb",
+        "lib/netcoreapp3.1/AWSSDK.Rekognition.xml",
+        "lib/netstandard2.0/AWSSDK.Rekognition.dll",
+        "lib/netstandard2.0/AWSSDK.Rekognition.pdb",
+        "lib/netstandard2.0/AWSSDK.Rekognition.xml",
+        "tools/install.ps1",
+        "tools/uninstall.ps1"
+      ]
+    },
     "Azure.Core/1.38.0": {
       "sha512": "IuEgCoVA0ef7E4pQtpC3+TkPbzaoQfa77HlfJDmfuaJUCVJmn7fT0izamZiryW5sYUFKizsftIxMkXKbgIcPMQ==",
       "type": "package",
@@ -2133,30 +2223,26 @@
   },
   "projectFileDependencyGroups": {
     "net8.0": [
+      "AWSSDK.Rekognition >= 3.7.400.14",
       "Dapper >= 2.1.35",
       "Microsoft.Data.SqlClient >= 5.2.2",
       "Swashbuckle.AspNetCore >= 6.4.0"
     ]
   },
   "packageFolders": {
-    "C:\\Users\\ptdrd\\.nuget\\packages\\": {},
-    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+    "C:\\Users\\naman\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\ptdrd\\Documents\\GitHub\\BiomatricProject\\BiometricAuthenticationAPI\\BiometricAuthenticationAPI.csproj",
+      "projectUniqueName": "C:\\Users\\naman\\Documents\\Projects\\BiometricAuthenticationAPI\\BiometricAuthenticationAPI.csproj",
       "projectName": "BiometricAuthenticationAPI",
-      "projectPath": "C:\\Users\\ptdrd\\Documents\\GitHub\\BiomatricProject\\BiometricAuthenticationAPI\\BiometricAuthenticationAPI.csproj",
-      "packagesPath": "C:\\Users\\ptdrd\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\ptdrd\\Documents\\GitHub\\BiomatricProject\\BiometricAuthenticationAPI\\obj\\",
+      "projectPath": "C:\\Users\\naman\\Documents\\Projects\\BiometricAuthenticationAPI\\BiometricAuthenticationAPI.csproj",
+      "packagesPath": "C:\\Users\\naman\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\naman\\Documents\\Projects\\BiometricAuthenticationAPI\\obj\\",
       "projectStyle": "PackageReference",
-      "fallbackFolders": [
-        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-      ],
       "configFilePaths": [
-        "C:\\Users\\ptdrd\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+        "C:\\Users\\naman\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -2188,6 +2274,10 @@
       "net8.0": {
         "targetAlias": "net8.0",
         "dependencies": {
+          "AWSSDK.Rekognition": {
+            "target": "Package",
+            "version": "[3.7.400.14, )"
+          },
           "Dapper": {
             "target": "Package",
             "version": "[2.1.35, )"

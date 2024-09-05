@@ -33,7 +33,7 @@
   },
   {
     "ContainingType": "BiometricAuthenticationAPI.Controllers.FaceMatchingController",
-    "Method": "MatchFaces",
+    "Method": "MatchFacesAWS",
     "RelativePath": "api/FaceMatching/match",
     "HttpMethod": "POST",
     "IsController": true,
