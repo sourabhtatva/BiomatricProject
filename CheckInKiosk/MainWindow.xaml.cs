@@ -20,8 +20,6 @@ namespace CheckInKiosk
             scanDocument.OnScanSuccess += ShowTakePhoto;
             scanDocument.OnRetry += ShowRetryScan;
 
-            // Ensure takePhoto is properly initialized and events are hooked up
-            takePhoto.OnPhotoCaptured += ShowCompletion;
         }
 
         private void HandleConsentYes()

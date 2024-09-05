@@ -11,6 +11,10 @@ using CheckInKiosk.Utils.Models;
 using CheckInKiosk.Utils.Services;
 using CheckInKiosk.Utils.Constants;
 using System.Windows.Media.Imaging;
+using System.Drawing;
+using CheckInKiosk.Utils.Resources.ApplicationData;
+using System.Drawing.Imaging;
+using System.IO;
 
 namespace CheckInKiosk
 {
@@ -79,19 +83,23 @@ namespace CheckInKiosk
 
             try
             {
-                byte[] imageBytes = null;
+                string base64Image = null;
 
                 if (!string.IsNullOrEmpty(_selectedImagePath))
                 {
-                    imageBytes = System.IO.File.ReadAllBytes(_selectedImagePath);
+                    Bitmap bitmap = new Bitmap(_selectedImagePath);
+                    base64Image = BitmapToBase64String(bitmap);
                 }
 
+                // Store Base64 image data
+                ApplicationData.Base64Image = base64Image;
+
                 // Create the request object
-                var request = new DocumentDetailUI()
+                var request = new DocumentDetailRequestUI()
                 {
                     DocumentNumber = additionalInfo,
                     DocumentType = documentType,
-                    DocumentImage = imageBytes
+                    DocumentImage = base64Image
                 };
 
                 // Serialize request object to JSON
@@ -133,5 +141,17 @@ namespace CheckInKiosk
             // Close the application when the "Okay" button is clicked
             Application.Current.Shutdown();
         }
+
+        private string BitmapToBase64String(Bitmap bitmapcapturedImage)
+        {
+            using (MemoryStream ms = new MemoryStream())
+            {
+                bitmapcapturedImage.Save(ms, ImageFormat.Png);
+                byte[] imageBytes = ms.ToArray();
+                return Convert.ToBase64String(imageBytes);
+            }
+        }
+
+
     }
 }
