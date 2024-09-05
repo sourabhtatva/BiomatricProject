@@ -3920,19 +3920,24 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\naman\\.nuget\\packages\\": {}
+    "C:\\Users\\ptdrd\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\naman\\Documents\\Projects\\CheckInKiosk\\CheckInKiosk.csproj",
+      "projectUniqueName": "D:\\Projects\\Projects\\CheckInKiosk\\CheckInKiosk.csproj",
       "projectName": "CheckInKiosk",
-      "projectPath": "C:\\Users\\naman\\Documents\\Projects\\CheckInKiosk\\CheckInKiosk.csproj",
-      "packagesPath": "C:\\Users\\naman\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\naman\\Documents\\Projects\\CheckInKiosk\\obj\\",
+      "projectPath": "D:\\Projects\\Projects\\CheckInKiosk\\CheckInKiosk.csproj",
+      "packagesPath": "C:\\Users\\ptdrd\\.nuget\\packages\\",
+      "outputPath": "D:\\Projects\\Projects\\CheckInKiosk\\obj\\",
       "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+      ],
       "configFilePaths": [
-        "C:\\Users\\naman\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\ptdrd\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -3947,8 +3952,8 @@
         "net8.0-windows10.0.18362": {
           "targetAlias": "net8.0-windows10.0.18362.0",
           "projectReferences": {
-            "C:\\Users\\naman\\Documents\\Projects\\BiometricAuthenticationAPI\\BiometricAuthenticationAPI.csproj": {
-              "projectPath": "C:\\Users\\naman\\Documents\\Projects\\BiometricAuthenticationAPI\\BiometricAuthenticationAPI.csproj"
+            "D:\\Projects\\Projects\\BiometricAuthenticationAPI\\BiometricAuthenticationAPI.csproj": {
+              "projectPath": "D:\\Projects\\Projects\\BiometricAuthenticationAPI\\BiometricAuthenticationAPI.csproj"
             }
           }
         }

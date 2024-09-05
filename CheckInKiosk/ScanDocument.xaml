@@ -6,7 +6,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" Background="#121212">
     <UserControl.Resources>
-        <!-- ComboBox Style -->
+        <!-- Define Styles -->
         <Style TargetType="ComboBox">
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="Background" Value="#1E1E1E"/>
@@ -15,37 +15,8 @@
             <Setter Property="Padding" Value="5"/>
             <Setter Property="Margin" Value="10"/>
             <Setter Property="FontSize" Value="16"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ComboBox">
-                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5">
-                            <Grid>
-                                <ToggleButton Name="ToggleButton" 
-                                              IsChecked="{Binding Path=IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" 
-                                              Background="{TemplateBinding Background}" 
-                                              BorderBrush="{TemplateBinding BorderBrush}"
-                                              BorderThickness="{TemplateBinding BorderThickness}">
-                                    <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center" Margin="3,3,25,3" Content="{TemplateBinding SelectionBoxItem}" />
-                                </ToggleButton>
-                                <Popup Name="Popup" Placement="Bottom" 
-                                       IsOpen="{TemplateBinding IsDropDownOpen}" 
-                                       AllowsTransparency="True" 
-                                       Focusable="False" 
-                                       PopupAnimation="Slide">
-                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5">
-                                        <ScrollViewer MaxHeight="200" CanContentScroll="True">
-                                            <ItemsPresenter/>
-                                        </ScrollViewer>
-                                    </Border>
-                                </Popup>
-                            </Grid>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
         </Style>
 
-        <!-- TextBox Style -->
         <Style TargetType="TextBox">
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="Background" Value="#1E1E1E"/>
@@ -54,18 +25,8 @@
             <Setter Property="Padding" Value="5"/>
             <Setter Property="Margin" Value="10"/>
             <Setter Property="FontSize" Value="16"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="TextBox">
-                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5">
-                            <ScrollViewer x:Name="PART_ContentHost"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
         </Style>
 
-        <!-- Button Style -->
         <Style TargetType="Button">
             <Setter Property="Background" Value="#1E90FF"/>
             <Setter Property="Foreground" Value="White"/>
@@ -75,21 +36,6 @@
             <Setter Property="Margin" Value="10"/>
             <Setter Property="FontSize" Value="18"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#4682B4"/>
-                    <Setter Property="BorderBrush" Value="#4682B4"/>
-                </Trigger>
-            </Style.Triggers>
         </Style>
 
         <!-- LoadingOverlay Style -->
@@ -103,43 +49,102 @@
         <!-- Main StackPanel for document submission -->
         <StackPanel x:Name="MainStackPanel" VerticalAlignment="Center" HorizontalAlignment="Center">
             <!-- PNG Image -->
-            <Image Source="C:\Users\ptdrd\Documents\GitHub\BiomatricProject\CheckInKiosk\Utils\Resources\Images\bm2.png" 
-                              Width="100" Height="100" Margin="0,0,0,20" HorizontalAlignment="Center"/>
+            <Image Source="D:\Projects\Projects\CheckInKiosk\Utils\Resources\Images\pngegg.png" Width="100" Height="100" Margin="0,0,0,20" HorizontalAlignment="Center"/>
 
-            <TextBlock Text="Select Document Type" Foreground="White" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10" FontWeight="Bold"/>
-            <ComboBox x:Name="DocumentTypeComboBox" 
-             Width="300"
-             Margin="10" 
-             FontSize="18"
-             FontWeight="Bold"
-             Background="White" 
-             Foreground="Black" 
-             SelectionChanged="OnDocumentTypeSelectionChanged">
-                <ComboBoxItem Content="Passport" Width="290"/>
-                <ComboBoxItem Content="Vietnam ID"/>
-            </ComboBox>
 
-            <!-- TextBox for additional information, initially hidden -->
-            <TextBox x:Name="AdditionalInfoTextBox" Background="White" Foreground="Black" Visibility="Collapsed"/>
-
-            <StackPanel x:Name="ImageUploadPanel" Visibility="Collapsed">
-                <TextBlock Text="Select Image" Foreground="White" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10" FontWeight="Bold"/>
-                <Button Content="Choose Image"  Background="White" Foreground="Black" Click="OnChooseImageClick" Margin="10"/>
-                <Image x:Name="UploadedImage" Height="100" Width="100" Margin="10"/>
+            <!-- Document Type ComboBox and Error Message -->
+            <StackPanel Margin="10">
+                <ComboBox x:Name="DocumentTypeComboBox" 
+                          Width="300" 
+                          FontSize="18"
+                          FontWeight="Bold"
+                           Background="White" 
+                           Foreground="Black"
+                          SelectionChanged="OnDocumentTypeSelectionChanged">
+                    <ComboBoxItem Content="Passport" Width="290"/>
+                    <ComboBoxItem Content="Vietnam ID"/>
+                </ComboBox>
+                <TextBlock x:Name="DocumentTypeErrorTextBlock" 
+                           Text="Please select a document type." 
+                           Foreground="Red" 
+                           FontSize="16" 
+                           HorizontalAlignment="Center"
+                           Visibility="Collapsed"
+                           Margin="0,5,0,0"/>
             </StackPanel>
 
+            <!-- Additional Info TextBox with Placeholder -->
+            <Grid Margin="10">
+                <TextBox x:Name="AdditionalInfoTextBox" 
+                         Background="White" 
+                         Foreground="Black"
+                         Visibility="Collapsed"
+                         TextChanged="OnAdditionalInfoTextChanged"/>
+                <TextBlock x:Name="PlaceholderTextBlock" 
+                           Text="Enter additional information" 
+                           Foreground="Gray" 
+                           FontSize="16"
+                           HorizontalAlignment="Left"
+                           Visibility="Collapsed"
+                           Margin="64,0,0,0"
+                           VerticalAlignment="Center"
+                           IsHitTestVisible="False"/>
+            </Grid>
+            <TextBlock x:Name="AdditionalInfoErrorTextBlock" 
+                       Text="Additional information is required." 
+                       Foreground="Red" 
+                       HorizontalAlignment="Center"
+                       FontSize="16" 
+                       Visibility="Collapsed"
+                       Margin="10,5,0,0"/>
+
+            <!-- Image Upload Section -->
+            <StackPanel x:Name="ImageUploadPanel" Visibility="Collapsed" Margin="10">
+                <TextBlock Text="Select Image" 
+                           Foreground="White" 
+                           FontSize="24" 
+                           HorizontalAlignment="Center" 
+                           VerticalAlignment="Center" 
+                           Margin="10" 
+                           FontWeight="Bold"/>
+                <Button Content="Choose Image" 
+                        Background="White" 
+                        Foreground="Black" 
+                        Click="OnChooseImageClick" 
+                        Margin="10"/>
+                <Image x:Name="UploadedImage" 
+                       Height="100" 
+                       Width="100" 
+                       Margin="10"/>
+                <TextBlock x:Name="ImageUploadErrorTextBlock" 
+                           Text="Image upload is required." 
+                           HorizontalAlignment="Center"
+                           Foreground="Red" 
+                           FontSize="16" 
+                           Visibility="Collapsed"/>
+            </StackPanel>
+
+            <!-- Submit Button -->
             <Button Content="Submit Document" 
-            Width="300" 
-            Height="50" 
-            Background="White" 
-            Foreground="Black" 
-            FontSize="18" 
-            FontWeight="Bold" 
-            Click="OnSubmitClick" 
-            HorizontalAlignment="Center"/>
+                    Width="300" 
+                    Height="50" 
+                    FontSize="18" 
+                    Background="Black" 
+                    Foreground="WhiteSmoke"
+                    Click="OnSubmitClick" 
+                    HorizontalAlignment="Center"/>
+
             <!-- Verification and Retry Messages -->
-            <TextBlock x:Name="VerificationMessage" Foreground="White" FontSize="18" Margin="10" Visibility="Collapsed"/>
-            <TextBlock x:Name="ErrorMessage" Foreground="Red" FontSize="18" Margin="10" Visibility="Collapsed"/>
+            <TextBlock x:Name="VerificationMessage" 
+                       Foreground="White" 
+                       FontSize="18" 
+                       Margin="10" 
+                       Visibility="Collapsed"/>
+            <TextBlock x:Name="ErrorMessage" 
+                       Foreground="Red" 
+                       FontSize="18" 
+                       Margin="10" 
+                       Visibility="Collapsed"/>
         </StackPanel>
 
         <!-- Loading Indicator, shown during API call -->
@@ -151,11 +156,28 @@
         </Grid>
 
         <!-- Manual Check-in Message Panel -->
-        <StackPanel x:Name="ManualCheckInPanel" VerticalAlignment="Center" HorizontalAlignment="Center" Width="600" Visibility="Collapsed">
-            <TextBlock TextAlignment="Center" Foreground="White" FontSize="20" FontWeight="Regular" Margin="0,0,0,20" TextWrapping="Wrap">
-                 The details you entered are incorrect. You can proceed with manual check-in or contact our agent for assistance.
+        <StackPanel x:Name="ManualCheckInPanel" 
+                    VerticalAlignment="Center" 
+                    HorizontalAlignment="Center" 
+                    Width="600" 
+                    Visibility="Collapsed">
+            <TextBlock TextAlignment="Center" 
+                       Foreground="White" 
+                       FontSize="20" 
+                       FontWeight="Regular" 
+                       Margin="0,0,0,20" 
+                       TextWrapping="Wrap">
+                The details you entered are incorrect. You can proceed with manual check-in or contact our agent for assistance.
             </TextBlock>
-            <Button Content="Okay" Width="150" Height="50" Background="White" Foreground="Black" FontSize="18" FontWeight="Bold" Click="OnOkayClick" HorizontalAlignment="Center"/>
+            <Button Content="Okay" 
+                    Width="150" 
+                    Height="50" 
+                    Background="White" 
+                    Foreground="Black" 
+                    FontSize="18" 
+                    FontWeight="Bold" 
+                    Click="OnOkayClick" 
+                    HorizontalAlignment="Center"/>
         </StackPanel>
     </Grid>
 </UserControl>

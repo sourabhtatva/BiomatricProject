@@ -26,14 +26,17 @@ namespace CheckInKiosk
             // Hide the consent panel and show the manual check-in panel
             ConsentPanel.Visibility = Visibility.Collapsed;
             ManualCheckInPanel.Visibility = Visibility.Visible;
-            OnConsentNo?.Invoke();
-
         }
 
         private void OnOkayClick(object sender, RoutedEventArgs e)
         {
-            // Exit the application when the Okay button is clicked
-            Application.Current.Shutdown();
+            // Notify the MainWindow to restart the application
+            var mainWindow = Application.Current.MainWindow as MainWindow;
+            if (mainWindow != null)
+            {
+                mainWindow.RestartApplication();
+            }
         }
+
     }
 }

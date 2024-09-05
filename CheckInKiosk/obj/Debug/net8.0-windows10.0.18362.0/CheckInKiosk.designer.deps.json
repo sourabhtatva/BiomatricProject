@@ -36,6 +36,25 @@
           }
         }
       },
+      "AWSSDK.Core/3.7.400.14": {
+        "runtime": {
+          "lib/net8.0/AWSSDK.Core.dll": {
+            "assemblyVersion": "3.3.0.0",
+            "fileVersion": "3.7.400.14"
+          }
+        }
+      },
+      "AWSSDK.Rekognition/3.7.400.14": {
+        "dependencies": {
+          "AWSSDK.Core": "3.7.400.14"
+        },
+        "runtime": {
+          "lib/net8.0/AWSSDK.Rekognition.dll": {
+            "assemblyVersion": "3.3.0.0",
+            "fileVersion": "3.7.400.14"
+          }
+        }
+      },
       "Azure.Core/1.38.0": {
         "dependencies": {
           "Microsoft.Bcl.AsyncInterfaces": "1.1.1",
@@ -910,6 +929,20 @@
       "sha512": "sha512-pEch6felU/RGAbl0A7yjaQjsGxwiRFU9R+qBqR92wQo++XhzPLeQaZHnAPIBYaG7MfoqtjgCDkK4z3Tra4VQ3w==",
       "path": "aforge.video.directshow/2.2.5",
       "hashPath": "aforge.video.directshow.2.2.5.nupkg.sha512"
+    },
+    "AWSSDK.Core/3.7.400.14": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-ZnlENxTAX9V6yMg0Ah2f8L/9QngRjf9z+4I2gJIzYVmf7w2Vp48t9ZmWMolEbg8Durmf2uVY8gHphqUd0BlHqQ==",
+      "path": "awssdk.core/3.7.400.14",
+      "hashPath": "awssdk.core.3.7.400.14.nupkg.sha512"
+    },
+    "AWSSDK.Rekognition/3.7.400.14": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-VQsruPJMbp0yXeiAqRjdYcspI5t4wYWf9sDlBNK3v072a90Zo3aGmHWgjFoS1yLnc7o3h+NNL37nQoq/BMhgoQ==",
+      "path": "awssdk.rekognition/3.7.400.14",
+      "hashPath": "awssdk.rekognition.3.7.400.14.nupkg.sha512"
     },
     "Azure.Core/1.38.0": {
       "type": "package",

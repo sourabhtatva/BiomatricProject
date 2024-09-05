@@ -18,6 +18,8 @@ builder.Services.AddHttpClient<AzureFaceService>(client =>
 builder.Services.AddSingleton<IAwsFaceService, AwsFaceService>();
 builder.Services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
 builder.Services.AddSingleton<IMemoryCacheService, MemoryCacheService>();
+
+builder.Services.AddScoped<IFaceMatchService, FaceMatchService>();
 builder.Services.AddScoped<IUserIdentificationDataService, UserIdentificationDataService>();
 builder.Services.AddScoped<IUserIdentificationTypeService, UserIdentificationTypeService>();
 builder.Services.AddScoped<IRecognitionLogService, RecognitionLogService>();

@@ -11,7 +11,7 @@
         <Grid>
             <!-- Center Image -->
             <Image x:Name="CenterImage" 
-                   Source="C:\Users\ptdrd\Downloads\bm2.png" 
+                   Source="D:\Projects\Projects\CheckInKiosk\Utils\Resources\Images\pngegg.png" 
                    Visibility="Visible"
                    Width="82" 
                    Height="70" 
