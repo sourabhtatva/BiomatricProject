@@ -3,185 +3,57 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Height="600" Width="800" Background="#121212">
     <Grid>
-        <!-- Define a single row and column to center content -->
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
 
-        <!-- Center Content within the Grid -->
-        <Border Grid.Row="1" 
-                Grid.Column="0" 
-                BorderBrush="#3498DB" 
-                BorderThickness="2"
-                Margin="20"
-                HorizontalAlignment="Center" 
-                VerticalAlignment="Center">
-            <Image x:Name="ImagePreview" 
-                   Width="350" 
-                   Height="340" 
-                   Stretch="UniformToFill"/>
-        </Border>
+        <!-- Background Grid for centering content -->
+        <Grid>
+            <!-- Center Image -->
+            <Image x:Name="CenterImage" 
+                   Source="C:\Users\ptdrd\Downloads\bm2.png" 
+                   Visibility="Visible"
+                   Width="82" 
+                   Height="70" 
+                   HorizontalAlignment="Center" 
+                   VerticalAlignment="Top"
+                   Margin="0,20,0,0" />
 
-        <!-- TextBlock and Capture Button -->
-        <StackPanel Grid.Row="2" 
-                    Grid.Column="0" 
-                    VerticalAlignment="Center" 
-                    HorizontalAlignment="Center" 
-                    Orientation="Vertical">
-            <TextBlock Text="Please capture your photo" 
-                       TextAlignment="Center" 
-                       Foreground="White" 
-                       FontSize="20" 
-                       FontWeight="Bold" 
-                       Margin="10,0,10,10"/>
+            <!-- Main Content with Webcam Feed and Other Elements -->
+            <StackPanel x:Name="MainContent" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="Visible">
+                <Border BorderBrush="#3498DB" BorderThickness="2" Margin="20" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Image x:Name="WebcamFeed" Width="350" Height="340" Stretch="UniformToFill"/>
+                </Border>
 
-            <!-- Capture Button -->
-            <Button Content="Capture Photo" 
-                    Foreground="White" 
-                    Background="#E74C3C" 
-                    FontSize="16" 
-                    FontWeight="Bold"
-                    Margin="10,0,10,10"
-                    Padding="10,5"
-                    BorderBrush="Transparent"
-                    BorderThickness="0"
-                    Cursor="Hand"
-                    Click="OnCaptureClick">
-                <Button.Style>
-                    <Style TargetType="Button">
-                        <Setter Property="Background" Value="#E74C3C"/>
-                        <Setter Property="Foreground" Value="White"/>
-                        <Setter Property="FontSize" Value="16"/>
-                        <Setter Property="FontWeight" Value="Bold"/>
-                        <Setter Property="Padding" Value="10,5"/>
-                        <Setter Property="BorderBrush" Value="Transparent"/>
-                        <Setter Property="BorderThickness" Value="0"/>
-                        <Setter Property="Cursor" Value="Hand"/>
-                        <Setter Property="Margin" Value="10,0,10,10"/>
-                        <Setter Property="Width" Value="200"/>
-                        <Setter Property="Height" Value="50"/>
-                        <Setter Property="HorizontalAlignment" Value="Center"/>
-                        <Setter Property="VerticalAlignment" Value="Center"/>
-                        <Setter Property="BorderBrush" Value="Transparent"/>
-                        <Setter Property="Background">
-                            <Setter.Value>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#C0392B" Offset="0"/>
-                                    <GradientStop Color="#E74C3C" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Setter.Value>
-                        </Setter>
-                        <Style.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background">
-                                    <Setter.Value>
-                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                            <GradientStop Color="#E74C3C" Offset="0"/>
-                                            <GradientStop Color="#C0392B" Offset="1"/>
-                                        </LinearGradientBrush>
-                                    </Setter.Value>
-                                </Setter>
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </Button.Style>
-            </Button>
+                <TextBlock x:Name="CapturePhotoTitle" Text="Please capture your photo" TextAlignment="Center" Foreground="White" FontSize="20" FontWeight="Bold" Margin="10,0,10,10"/>
 
-            <!-- Verification Message -->
-            <TextBlock x:Name="VerificationMessage" 
-                       Foreground="White" 
-                       FontSize="16" 
-                       Margin="10,0,10,10" 
-                       Visibility="Collapsed"
-                       TextAlignment="Center"/>
+                <!-- Verification Message -->
+                <TextBlock x:Name="VerificationMessage" Foreground="White" FontSize="16" Margin="10,0,10,10" Visibility="Collapsed" TextAlignment="Center"/>
 
-            <!-- Loading Indicator -->
-            <ProgressBar x:Name="LoadingIndicator" 
-                         IsIndeterminate="True" 
-                         Height="20" 
-                         Width="200" 
-                         Margin="10,0,10,10" 
-                         Visibility="Collapsed"
-                         HorizontalAlignment="Center"
-                         Foreground="#3498DB"/>
-
-            <!-- Boarding Pass Details -->
-            <Border Padding="10" 
-                    Background="#34495E" 
-                    Visibility="Collapsed" 
-                    x:Name="BoardingPassPanel" 
-                    Margin="10"
-                    CornerRadius="8"
-                    HorizontalAlignment="Center" 
-                    VerticalAlignment="Center">
-                <StackPanel>
-                    <TextBlock Text="Boarding Pass" 
-                               Foreground="White" 
-                               FontSize="24" 
-                               FontWeight="Bold" 
-                               Margin="5"/>
-                    <TextBlock x:Name="BoardingPassDetails" 
-                               Foreground="White" 
-                               FontSize="16" 
-                               Margin="5"/>
-                    <Button Content="Finish" 
-                            Foreground="White" 
-                            Background="#27AE60" 
-                            FontSize="16" 
-                            FontWeight="Bold"
-                            Margin="10"
-                            Padding="10,5"
-                            BorderBrush="Transparent"
-                            BorderThickness="0"
-                            Cursor="Hand"
-                            Click="OnFinishClick">
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="Background" Value="#27AE60"/>
-                                <Setter Property="Foreground" Value="White"/>
-                                <Setter Property="FontSize" Value="16"/>
-                                <Setter Property="FontWeight" Value="Bold"/>
-                                <Setter Property="Padding" Value="10,5"/>
-                                <Setter Property="BorderBrush" Value="Transparent"/>
-                                <Setter Property="BorderThickness" Value="0"/>
-                                <Setter Property="Cursor" Value="Hand"/>
-                                <Setter Property="Margin" Value="10"/>
-                                <Setter Property="Width" Value="200"/>
-                                <Setter Property="Height" Value="50"/>
-                                <Setter Property="HorizontalAlignment" Value="Center"/>
-                                <Setter Property="VerticalAlignment" Value="Center"/>
-                                <Setter Property="BorderBrush" Value="Transparent"/>
-                                <Setter Property="Background">
-                                    <Setter.Value>
-                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                            <GradientStop Color="#2ECC71" Offset="0"/>
-                                            <GradientStop Color="#27AE60" Offset="1"/>
-                                        </LinearGradientBrush>
-                                    </Setter.Value>
-                                </Setter>
-                                <Style.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Background">
-                                            <Setter.Value>
-                                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                                    <GradientStop Color="#27AE60" Offset="0"/>
-                                                    <GradientStop Color="#2ECC71" Offset="1"/>
-                                                </LinearGradientBrush>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
+                <!-- Manual Check-In Error Panel -->
+                <StackPanel x:Name="ManualCheckInPanel" VerticalAlignment="Center" HorizontalAlignment="Center" Width="600" Visibility="Collapsed">
+                    <TextBlock TextAlignment="Center" Foreground="White" FontSize="20" Margin="0,0,0,20" TextWrapping="Wrap">
+                        The details you entered are incorrect. You can proceed with manual check-in or contact our agent for assistance.
+                    </TextBlock>
+                    <Button Content="Okay" Width="150" Height="50" Background="White" Foreground="Black" FontSize="18" FontWeight="Bold" Click="OnOkayClick" HorizontalAlignment="Center"/>
                 </StackPanel>
-            </Border>
-        </StackPanel>
+
+                <!-- Check-In Complete Message -->
+                <StackPanel x:Name="CheckInComplete" VerticalAlignment="Center" HorizontalAlignment="Center" Width="600" Visibility="Collapsed">
+                    <TextBlock TextAlignment="Center" Foreground="White" FontSize="20" Margin="0,0,0,20" TextWrapping="Wrap">
+                        Check-in complete. Have a great flight!
+                    </TextBlock>
+                    <Button Content="Okay" Width="150" Height="50" Background="White" Foreground="Black" FontSize="18" FontWeight="Bold" Click="OnOkayClick" HorizontalAlignment="Center"/>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+
+        <!-- Loading Indicator and Message Centered -->
+        <Grid x:Name="LoadingOverlay" Visibility="Collapsed">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                <ProgressBar IsIndeterminate="True" Height="50" Width="50" />
+                <TextBlock Foreground="White" FontSize="18" Margin="10" HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </UserControl>

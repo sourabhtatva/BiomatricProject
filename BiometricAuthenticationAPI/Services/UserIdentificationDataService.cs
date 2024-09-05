@@ -9,10 +9,11 @@ using Dapper;
 
 namespace BiometricAuthenticationAPI.Services
 {
-    public class UserIdentificationDataService(IUserIdentificationDataRepository userIdentificationDataRepository, IUserIdentificationTypeService userIdentificationTypeService) : IUserIdentificationDataService
+    public class UserIdentificationDataService(IUserIdentificationDataRepository userIdentificationDataRepository, IUserIdentificationTypeService userIdentificationTypeService, IMemoryCacheService memoryCacheService) : IUserIdentificationDataService
     {
         private readonly IUserIdentificationDataRepository _userIdentificationDataRepository = userIdentificationDataRepository;
         private readonly IUserIdentificationTypeService _userIdentificationTypeService = userIdentificationTypeService;
+        private readonly IMemoryCacheService _memoryCacheService = memoryCacheService;
         private readonly string _entityName = SystemConstants.UserIdentificationData.ENTITY;
 
         /// <summary>
@@ -173,6 +174,13 @@ namespace BiometricAuthenticationAPI.Services
                 var userIdentificationData = await _userIdentificationDataRepository.GetAllAsync(DBConstants.UserIdentificationData.GET_USER_IDENTIFICATION_DATA) ?? throw new DataNotFoundException(Messages.UserIdentificationData.General.NotFoundMessage(_entityName)); ;
 
                 var userIdentificationType = await _userIdentificationTypeService.GetAllUserIdentificationType() ?? throw new DataNotFoundException(Messages.UserIdentificationType.General.NotFoundMessage(_entityName));
+
+                var userIdData = userIdentificationData.FirstOrDefault(i => i.UserIdNumber == documentDetailRequest.DocumentNumber);
+
+                if(userIdData != null)
+                {
+                    _memoryCacheService.SetData("UserId", Convert.ToString(userIdData.Id));
+                }
 
                 if (!userIdentificationData.Any(i => i.UserIdNumber == documentDetailRequest.DocumentNumber))
                 {
