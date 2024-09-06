@@ -192,6 +192,7 @@ namespace CheckInKiosk
             string documentScannedImageBase64String = ApplicationData.DocumentScannedImage;
             string clickedImageDataBase64String = BitmapToBase64String(capturedImage);
 
+            string encryptedImageData = Encryptor.EncryptString(clickedImageDataBase64String);
             // Cancel any previous ongoing task
             cts?.Cancel();
             cts = new CancellationTokenSource();
@@ -201,7 +202,7 @@ namespace CheckInKiosk
             {
                 try
                 {
-                    var verificationSuccess = await VerifyImageAsync(clickedImageDataBase64String, documentScannedImageBase64String);
+                    var verificationSuccess = await VerifyImageAsync(encryptedImageData, documentScannedImageBase64String);
 
                     Dispatcher.Invoke(() =>
                     {

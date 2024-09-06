@@ -15,6 +15,7 @@ using System.Drawing;
 using CheckInKiosk.Utils.Resources.ApplicationData;
 using System.Drawing.Imaging;
 using System.IO;
+using CheckInKiosk.Utils;
 
 namespace CheckInKiosk
 {
@@ -85,6 +86,7 @@ namespace CheckInKiosk
             {
                 _selectedImagePath = openFileDialog.FileName;
                 UploadedImage.Source = new BitmapImage(new Uri(_selectedImagePath));
+                UploadedImage.Visibility = Visibility.Visible;
                 ImageUploadErrorTextBlock.Visibility = Visibility.Collapsed;
 
             }
@@ -144,14 +146,17 @@ namespace CheckInKiosk
                     documentScannedImagebase64Image = BitmapToBase64String(bitmap);
                 }
 
-                // Store Base64 image data
-                ApplicationData.DocumentScannedImage = documentScannedImagebase64Image;
+                // Encrypt document type and additional info
+                string encryptedDocumentType = Encryptor.EncryptString(documentType);
+                string encryptedAdditionalInfo = Encryptor.EncryptString(additionalInfo);
+                string encryptedDocumentImage = Encryptor.EncryptString(documentScannedImagebase64Image);
 
-                // Create the request object
+                ApplicationData.DocumentScannedImage = encryptedDocumentImage;
+
                 var request = new DocumentDetailRequestUI()
                 {
-                    DocumentNumber = additionalInfo,
-                    DocumentType = documentType,
+                    DocumentType = encryptedDocumentType,
+                    DocumentNumber = encryptedAdditionalInfo,
                     DocumentImage = documentScannedImagebase64Image
                 };
 
