@@ -64,6 +64,7 @@ namespace BiometricAuthenticationAPI.Services
                 parameters.Add(DBConstants.RecognitionLog.USER_ID, recognitionLogData.UserId);
                 parameters.Add(DBConstants.RecognitionLog.RECOGNITION_TIME, recognitionLogData.RecognitionTime);
                 parameters.Add(DBConstants.RecognitionLog.CONFIDENCE_LEVEL, recognitionLogData.ConfidenceLevel);
+                parameters.Add(DBConstants.RecognitionLog.SIMILARITY_LEVEL, recognitionLogData.SimilarityLevel);
                 parameters.Add(DBConstants.RecognitionLog.STATUS, recognitionLogData.Status);
 
                 return await _recognitionLogRepository.AddAsync(DBConstants.RecognitionLog.RECOGNITION_LOG_INSERT, parameters);
@@ -97,6 +98,7 @@ namespace BiometricAuthenticationAPI.Services
                 parameters.Add(DBConstants.RecognitionLog.USER_ID, recognitionLogData.UserId);
                 parameters.Add(DBConstants.RecognitionLog.RECOGNITION_TIME, recognitionLogData.RecognitionTime);
                 parameters.Add(DBConstants.RecognitionLog.CONFIDENCE_LEVEL, recognitionLogData.ConfidenceLevel);
+                parameters.Add(DBConstants.RecognitionLog.SIMILARITY_LEVEL, recognitionLogData.SimilarityLevel);
                 parameters.Add(DBConstants.RecognitionLog.STATUS, recognitionLogData.Status);
 
                 return await _recognitionLogRepository.UpdateAsync(DBConstants.RecognitionLog.RECOGNITION_LOG_UPDATE, parameters);

@@ -59,6 +59,7 @@
             public static readonly string USER_ID = "UserId"; 
             public static readonly string RECOGNITION_TIME = "RecognitionTime";
             public static readonly string CONFIDENCE_LEVEL = "ConfidenceLevel";
+            public static readonly string SIMILARITY_LEVEL = "SimilarityLevel";
             public static readonly string STATUS = "Status";
             #endregion
         }

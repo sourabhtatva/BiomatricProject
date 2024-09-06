@@ -1,7 +1,6 @@
 ﻿using BiometricAuthenticationAPI.Data;
 using BiometricAuthenticationAPI.Data.Models;
 using BiometricAuthenticationAPI.Repositories.Interfaces;
-using System.Net;
 
 namespace BiometricAuthenticationAPI.Repositories
 {

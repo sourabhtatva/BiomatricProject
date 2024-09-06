@@ -165,6 +165,9 @@ namespace BiometricAuthenticationAPI.Services
         {
             try
             {
+                documentDetailRequest.DocumentNumber = CommonHelper.DecryptString(documentDetailRequest.DocumentNumber);
+                documentDetailRequest.DocumentType = CommonHelper.DecryptString(documentDetailRequest.DocumentType);
+
                 DocumentValidateResponse documentValidateResponse = new()
                 {
                     IsValid = true,

@@ -20,6 +20,9 @@ namespace BiometricAuthenticationAPI.Data.Models
         [Column("ConfidenceLevel")]
         public float ConfidenceLevel { get; set; }
 
+        [Column("SimilarityLevel")]
+        public float SimilarityLevel { get; set; }
+
         [Column("Status")]
         public string? Status { get; set; }
 

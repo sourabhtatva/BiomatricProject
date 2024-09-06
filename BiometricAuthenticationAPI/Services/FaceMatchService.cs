@@ -1,5 +1,4 @@
 ﻿using Amazon.Rekognition.Model;
-using Azure.Core;
 using BiometricAuthenticationAPI.Data.Models;
 using BiometricAuthenticationAPI.Data.Models.Response;
 using BiometricAuthenticationAPI.Helpers.Constants;
@@ -19,6 +18,17 @@ namespace BiometricAuthenticationAPI.Services
             try
             {
                 FaceVerifyResponse response = new FaceVerifyResponse();
+
+                //string decryptedScannedImage = CommonHelper.DecryptString(encryptedFaceMatchRequest.ScannedImage);
+
+                //string decryptedClickedImage = CommonHelper.DecryptString(encryptedFaceMatchRequest.ClickedImage);
+
+                //byte[] scannedImage = CommonHelper.ConvertStringToByteArray(decryptedScannedImage);
+
+                //byte[] clickedImage = CommonHelper.ConvertStringToByteArray(decryptedClickedImage);
+
+                //matchFacesRequest.ScannedImage = CommonHelper.DecryptByteArray(matchFacesRequest.ScannedImage);
+                //matchFacesRequest.ClickedImage = CommonHelper.DecryptByteArray(matchFacesRequest.ClickedImage);
 
                 Image imageSource = new();
                 imageSource.Bytes = CommonHelper.ByteArrayToMemoryStream(matchFacesRequest.ScannedImage);
@@ -52,6 +62,7 @@ namespace BiometricAuthenticationAPI.Services
                 RecognitionLog recognitionLog = new()
                 {
                     ConfidenceLevel = response.Confidence,
+                    SimilarityLevel = response.Similarity,
                     UserId = userId,
                     RecognitionTime = DateTime.Now,
                     Status = response.IsIdentical ? SystemConstants.General.SUCCESS : SystemConstants.General.FAILURE
