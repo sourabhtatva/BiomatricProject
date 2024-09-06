@@ -30,9 +30,6 @@
             </StackPanel>
         </Grid>
 
-        <!-- Verification Message -->
-        <TextBlock x:Name="VerificationMessage" Foreground="White" FontSize="16" Margin="10,0,10,10" Visibility="Collapsed" TextAlignment="Center"/>
-
         <!-- Manual Check-In Error Panel -->
         <StackPanel x:Name="ManualCheckInPanel" VerticalAlignment="Center" HorizontalAlignment="Center" Width="600" Visibility="Collapsed">
             <TextBlock TextAlignment="Center" Foreground="White" FontSize="20" Margin="0,0,0,20" TextWrapping="Wrap">
@@ -53,7 +50,7 @@
         <Grid x:Name="LoadingOverlay" Visibility="Collapsed">
             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                 <ProgressBar IsIndeterminate="True" Height="50" Width="50" />
-                <TextBlock Foreground="White" FontSize="18" Margin="10" HorizontalAlignment="Center"/>
+                <TextBlock x:Name="VerificationMessage" Foreground="White" FontSize="18" Margin="10" HorizontalAlignment="Center"/>
             </StackPanel>
         </Grid>
     </Grid>
