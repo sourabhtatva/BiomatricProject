@@ -45,9 +45,33 @@ namespace CheckInKiosk
 
         private void OnDocumentTypeSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // Show the text field when a document type is selected
-            AdditionalInfoTextBox.Visibility = Visibility.Visible;
-            ImageUploadPanel.Visibility = Visibility.Visible;
+            if (DocumentTypeComboBox.SelectedItem == null)
+            {
+                DocumentTypeErrorTextBlock.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                // Show the text field when a document type is selected
+                PlaceholderTextBlock.Visibility = Visibility.Visible;
+                AdditionalInfoTextBox.Visibility = Visibility.Visible;
+                ImageUploadPanel.Visibility = Visibility.Visible;
+
+                DocumentTypeErrorTextBlock.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void OnAdditionalInfoTextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(AdditionalInfoTextBox.Text))
+            {
+                PlaceholderTextBlock.Visibility = Visibility.Visible;
+                AdditionalInfoErrorTextBlock.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                PlaceholderTextBlock.Visibility = Visibility.Collapsed;
+                AdditionalInfoErrorTextBlock.Visibility = Visibility.Collapsed;
+            }
         }
 
         private void OnChooseImageClick(object sender, RoutedEventArgs e)
@@ -61,14 +85,43 @@ namespace CheckInKiosk
             {
                 _selectedImagePath = openFileDialog.FileName;
                 UploadedImage.Source = new BitmapImage(new Uri(_selectedImagePath));
+                ImageUploadErrorTextBlock.Visibility = Visibility.Collapsed;
+
             }
         }
 
         private async void OnSubmitClick(object sender, RoutedEventArgs e)
         {
             // Get selected document type
-            string documentType = (DocumentTypeComboBox.SelectedItem as ComboBoxItem)?.Content.ToString() ?? "Unknown";
+            string documentType = (DocumentTypeComboBox.SelectedItem as ComboBoxItem)?.Content.ToString() ?? string.Empty;
             string additionalInfo = AdditionalInfoTextBox.Text;
+
+            bool hasError = false;
+
+            // Check if document type is selected
+            if (string.IsNullOrEmpty(documentType))
+            {
+                DocumentTypeErrorTextBlock.Visibility = Visibility.Visible;
+                hasError = true;
+            }
+
+            // Check if additional info or image is empty
+            if (string.IsNullOrEmpty(additionalInfo) && AdditionalInfoTextBox.Visibility == Visibility.Visible)
+            {
+                AdditionalInfoErrorTextBlock.Visibility = Visibility.Visible;
+                hasError = true;
+            }
+
+            if (string.IsNullOrEmpty(_selectedImagePath) && ImageUploadPanel.Visibility == Visibility.Visible)
+            {
+                ImageUploadErrorTextBlock.Visibility = Visibility.Visible;
+                hasError = true;
+            }
+
+            if (hasError)
+            {
+                return; // Exit if there are validation errors
+            }
 
             // Hide all UI elements except Loading Indicator and Verification Message
             MainStackPanel.Visibility = Visibility.Collapsed;
@@ -136,11 +189,17 @@ namespace CheckInKiosk
             }
         }
 
+
         private void OnOkayClick(object sender, RoutedEventArgs e)
         {
-            // Close the application when the "Okay" button is clicked
-            Application.Current.Shutdown();
+            // Notify the MainWindow to restart the application
+            var mainWindow = Application.Current.MainWindow as MainWindow;
+            if (mainWindow != null)
+            {
+                mainWindow.RestartApplication();
+            }
         }
+
 
         private string BitmapToBase64String(Bitmap bitmapcapturedImage)
         {

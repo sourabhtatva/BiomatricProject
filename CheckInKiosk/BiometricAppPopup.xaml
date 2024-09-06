@@ -9,7 +9,7 @@
     <Grid>
         <!-- Initial Consent Screen -->
         <StackPanel x:Name="ConsentPanel" VerticalAlignment="Center" HorizontalAlignment="Center" Width="600">
-            <Image Source="C:\Users\ptdrd\Documents\GitHub\BiomatricProject\CheckInKiosk\Utils\Resources\Images\bm2.png" Width="80" Height="80" HorizontalAlignment="Center" Margin="0,20,0,20"/>
+            <Image Source="Utils\Resources\Images\pngegg.png" Width="80" Height="80" HorizontalAlignment="Center" Margin="0,20,0,20"/>
 
             <!-- Main Text -->
             <TextBlock TextAlignment="Center" Foreground="White" FontSize="22" FontWeight="Bold" Margin="0,0,0,30" TextWrapping="Wrap">

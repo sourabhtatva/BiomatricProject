@@ -188,7 +188,7 @@ namespace BiometricAuthenticationAPI.Services
                     documentValidateResponse.RejectReason = RejectReason.DocumentNotFound;
                     return documentValidateResponse;
                 }
-                if (!userIdentificationType.Any(i => i.Type == documentDetailRequest.DocumentType))
+                if (!userIdentificationType.Any(i => i.Id == userIdData?.UserIdType && i.Type == documentDetailRequest.DocumentType))
                 {
                     documentValidateResponse.IsValid = false;
                     documentValidateResponse.RejectReason = RejectReason.InvalidDocumentType;

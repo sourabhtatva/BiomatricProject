@@ -187,6 +187,7 @@ namespace CheckInKiosk
             VerificationMessage.Visibility = Visibility.Visible;
             LoadingOverlay.Visibility = Visibility.Visible;
             CapturePhotoTitle.Visibility = Visibility.Collapsed;
+            MainContent.Visibility = Visibility.Collapsed;
 
             string documentScannedImageBase64String = ApplicationData.DocumentScannedImage;
             string clickedImageDataBase64String = BitmapToBase64String(capturedImage);
@@ -291,7 +292,12 @@ namespace CheckInKiosk
 
         private void OnOkayClick(object sender, RoutedEventArgs e)
         {
-            Application.Current.Shutdown();
+            // Notify the MainWindow to restart the application
+            var mainWindow = Application.Current.MainWindow as MainWindow;
+            if (mainWindow != null)
+            {
+                mainWindow.RestartApplication();
+            }
         }
 
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)

@@ -13,7 +13,7 @@ namespace BiometricAuthenticationAPI.Services
             try
             {
                 var awsCredentials = new Amazon.Runtime.BasicAWSCredentials(SystemConstants.Configuration.AWS_ACCESS_KEY, SystemConstants.Configuration.AWS_SECRET_KEY);
-                AmazonRekognitionClient rekognitionClient = new(awsCredentials, Amazon.RegionEndpoint.USEast1);
+                AmazonRekognitionClient rekognitionClient = new(awsCredentials, Amazon.RegionEndpoint.APSouth1);
 
                 return await rekognitionClient.CompareFacesAsync(compareFacesRequest) ?? new CompareFacesResponse();
             }

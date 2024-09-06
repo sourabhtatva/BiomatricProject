@@ -10,6 +10,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Utils\Resources\Images\bm2.png" />
+    <None Remove="Utils\Resources\Images\FaceRecLogo.png" />
+    <None Remove="Utils\Resources\Images\pngegg.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AForge.Video" Version="2.2.5" />
     <PackageReference Include="AForge.Video.DirectShow" Version="2.2.5" />
     <PackageReference Include="DirectShowLib" Version="1.0.0" />
@@ -18,11 +24,18 @@
     <PackageReference Include="Emgu.CV.UI" Version="4.9.0.5494" />
     <PackageReference Include="System.Drawing.Common" Version="8.0.8" />
   </ItemGroup>
-	<Target Name="CopyXMLFile" AfterTargets="Build">
+	<Target Name="CopyDlls" AfterTargets="Build">
 		<Copy SourceFiles="$(ProjectDir)Utils\Resources\XMLFile\haarcascade_frontalface_default.xml" DestinationFolder="$(OutputPath)" />
 	</Target>
   <ItemGroup>
     <ProjectReference Include="..\BiometricAuthenticationAPI\BiometricAuthenticationAPI.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Utils\Resources\Images\bm2.png" />
+    <Resource Include="Utils\Resources\Images\FaceRecLogo.png" />
+    <Resource Include="Utils\Resources\Images\pngegg.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
 </Project>

@@ -78,6 +78,15 @@ namespace CheckInKiosk
                 takePhoto.StartCamera();
             }
         }
+        public void RestartApplication()
+        {
+            // Close the application
+            Application.Current.Shutdown();
+
+            // Restart the application
+            System.Diagnostics.Process.Start(System.AppDomain.CurrentDomain.FriendlyName);
+            Environment.Exit(0); // Ensure the current instance is exited
+        }
 
         private void StopTakePhotoCamera()
         {
