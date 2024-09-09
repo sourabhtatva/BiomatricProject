@@ -27,8 +27,11 @@ namespace BiometricAuthenticationAPI.Services
 
                 //byte[] clickedImage = CommonHelper.ConvertStringToByteArray(decryptedClickedImage);
 
-                //matchFacesRequest.ScannedImage = CommonHelper.DecryptByteArray(matchFacesRequest.ScannedImage);
-                //matchFacesRequest.ClickedImage = CommonHelper.DecryptByteArray(matchFacesRequest.ClickedImage);
+                matchFacesRequest.ScannedImage = CommonHelper.DecryptByteArray(matchFacesRequest.ScannedImage);
+                matchFacesRequest.ClickedImage = CommonHelper.DecryptByteArray(matchFacesRequest.ClickedImage);
+
+                //string Scanbase64String = Convert.ToBase64String(matchFacesRequest.ScannedImage);
+                //string Clickbase64String = Convert.ToBase64String(matchFacesRequest.ClickedImage);
 
                 Image imageSource = new();
                 imageSource.Bytes = CommonHelper.ByteArrayToMemoryStream(matchFacesRequest.ScannedImage);

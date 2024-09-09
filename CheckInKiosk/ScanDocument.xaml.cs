@@ -149,15 +149,18 @@ namespace CheckInKiosk
                 // Encrypt document type and additional info
                 string encryptedDocumentType = Encryptor.EncryptString(documentType);
                 string encryptedAdditionalInfo = Encryptor.EncryptString(additionalInfo);
-                string encryptedDocumentImage = Encryptor.EncryptString(documentScannedImagebase64Image);
 
-                ApplicationData.DocumentScannedImage = encryptedDocumentImage;
+                byte[] clickedScannedImageData = Convert.FromBase64String(documentScannedImagebase64Image);
+                byte[] encryptedScannedImageData = Encryptor.EncryptByteArray(clickedScannedImageData);
+                string encryptedScannedImageBase64String = Convert.ToBase64String(encryptedScannedImageData);
+
+                ApplicationData.DocumentScannedImage = encryptedScannedImageBase64String;
 
                 var request = new DocumentDetailRequestUI()
                 {
                     DocumentType = encryptedDocumentType,
                     DocumentNumber = encryptedAdditionalInfo,
-                    DocumentImage = documentScannedImagebase64Image
+                    DocumentImage = encryptedScannedImageBase64String
                 };
 
                 // Serialize request object to JSON
