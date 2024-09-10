@@ -19,19 +19,8 @@ namespace BiometricAuthenticationAPI.Services
             {
                 FaceVerifyResponse response = new FaceVerifyResponse();
 
-                //string decryptedScannedImage = CommonHelper.DecryptString(encryptedFaceMatchRequest.ScannedImage);
-
-                //string decryptedClickedImage = CommonHelper.DecryptString(encryptedFaceMatchRequest.ClickedImage);
-
-                //byte[] scannedImage = CommonHelper.ConvertStringToByteArray(decryptedScannedImage);
-
-                //byte[] clickedImage = CommonHelper.ConvertStringToByteArray(decryptedClickedImage);
-
                 matchFacesRequest.ScannedImage = CommonHelper.DecryptByteArray(matchFacesRequest.ScannedImage);
                 matchFacesRequest.ClickedImage = CommonHelper.DecryptByteArray(matchFacesRequest.ClickedImage);
-
-                //string Scanbase64String = Convert.ToBase64String(matchFacesRequest.ScannedImage);
-                //string Clickbase64String = Convert.ToBase64String(matchFacesRequest.ClickedImage);
 
                 Image imageSource = new();
                 imageSource.Bytes = CommonHelper.ByteArrayToMemoryStream(matchFacesRequest.ScannedImage);
@@ -52,6 +41,13 @@ namespace BiometricAuthenticationAPI.Services
                     response.Confidence = compareFacesResponse.FaceMatches.First().Face.Confidence;
                     response.Similarity = compareFacesResponse.FaceMatches.First().Similarity;
                     response.IsIdentical = compareFacesResponse.FaceMatches.Count > 0;
+                }
+                else if (compareFacesResponse == null)
+                {
+                    response.Confidence = 0.0F;
+                    response.Similarity = 0.0F;
+                    response.IsIdentical = false;
+                    response.ApiFailedStatus = true;
                 }
                 else
                 {

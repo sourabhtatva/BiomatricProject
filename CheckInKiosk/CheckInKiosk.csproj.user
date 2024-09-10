@@ -10,9 +10,6 @@
     <Compile Update="BiometricAppPopup.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="MatchAndEnroll.xaml.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Update="ScanDocument.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -25,9 +22,6 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="MainWindow.xaml">
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Update="MatchAndEnroll.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="ScanDocument.xaml">

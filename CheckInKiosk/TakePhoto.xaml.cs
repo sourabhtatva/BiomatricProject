@@ -6,14 +6,11 @@ using CheckInKiosk.Utils.Resources.ApplicationData;
 using CheckInKiosk.Utils.Services;
 using Emgu.CV;
 using Emgu.CV.Structure;
-using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Net.Http;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
@@ -32,8 +29,6 @@ namespace CheckInKiosk
         private CascadeClassifier faceCascade;
         private HttpClientService _httpClientService;
 
-
-
         public TakePhoto()
         {
             InitializeComponent();
@@ -41,7 +36,8 @@ namespace CheckInKiosk
 
             // Initialize the timer
             captureTimer = new DispatcherTimer();
-            captureTimer.Interval = TimeSpan.FromSeconds(3); // Set delay for 3 seconds
+            // Set delay for 3 seconds
+            captureTimer.Interval = TimeSpan.FromSeconds(3); 
             captureTimer.Tick += CaptureTimer_Tick;
 
             // Initialize CancellationTokenSource
@@ -81,12 +77,12 @@ namespace CheckInKiosk
                 }
                 else
                 {
-                    MessageBox.Show("No camera found!");
+                    MessageBox.Show(UIMessages.FaceVerification.CameraNotFoundMessage);
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error starting camera: {ex.Message}");
+                MessageBox.Show(UIMessages.FaceVerification.CameraStartErrorMessage(ex.Message));
             }
         }
 
@@ -116,7 +112,6 @@ namespace CheckInKiosk
             // Ensure the timer is stopped
             captureTimer.Stop();
         }
-
 
         private void OnNewFrame(object sender, NewFrameEventArgs eventArgs)
         {
@@ -161,12 +156,11 @@ namespace CheckInKiosk
             }
         }
 
-
         private static BitmapSource BitmapToImageSource(Bitmap bitmap)
         {
             using (var memoryStream = new MemoryStream())
             {
-                bitmap.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Bmp);
+                bitmap.Save(memoryStream, ImageFormat.Bmp);
                 memoryStream.Seek(0, SeekOrigin.Begin);
                 BitmapImage bitmapImage = new BitmapImage();
                 bitmapImage.BeginInit();
@@ -183,7 +177,7 @@ namespace CheckInKiosk
             WebcamFeed.Visibility = Visibility.Collapsed;
 
             // Show Verification Message and Loading Indicator
-            VerificationMessage.Text = "We are verifying your identity. Please wait...";
+            VerificationMessage.Text = UIMessages.FaceVerification.IdentityVerificationInProgressMessage;
             VerificationMessage.Visibility = Visibility.Visible;
             LoadingOverlay.Visibility = Visibility.Visible;
             CapturePhotoTitle.Visibility = Visibility.Collapsed;
@@ -206,15 +200,22 @@ namespace CheckInKiosk
             {
                 try
                 {
-                    var verificationSuccess = await VerifyImageAsync(encryptedImageBase64String, documentScannedImageBase64String);
+                    var verifyImageResponse = await VerifyImageAsync(encryptedImageBase64String, documentScannedImageBase64String);
 
                     Dispatcher.Invoke(() =>
                     {
-                        if (verificationSuccess)
+                        if (verifyImageResponse.IsIdentical)
                         {
                             VerificationMessage.Visibility = Visibility.Collapsed;
                             LoadingOverlay.Visibility = Visibility.Collapsed;
                             CheckInComplete.Visibility = Visibility.Visible;
+                        }
+                        else if(verifyImageResponse.ApiFailedStatus)
+                        {
+                            VerificationMessage.Visibility = Visibility.Collapsed;
+                            LoadingOverlay.Visibility = Visibility.Collapsed;
+                            CheckInComplete.Visibility = Visibility.Collapsed;
+                            ApiFailedCase.Visibility = Visibility.Visible;
                         }
                         else
                         {
@@ -229,7 +230,7 @@ namespace CheckInKiosk
                 {
                     Dispatcher.Invoke(() =>
                     {
-                        MessageBox.Show("The verification process was canceled.");
+                        MessageBox.Show(UIMessages.FaceVerification.VerificationCancelMessage);
                         LoadingOverlay.Visibility = Visibility.Collapsed;
                     });
                 }
@@ -237,17 +238,19 @@ namespace CheckInKiosk
                 {
                     Dispatcher.Invoke(() =>
                     {
-                        MessageBox.Show($"Error during verification: {ex.Message}");
+                        MessageBox.Show(UIMessages.FaceVerification.VerificationErrorMessage(ex.Message));
                         LoadingOverlay.Visibility = Visibility.Collapsed;
                     });
                 }
             }, token); // Pass the cancellation token here
         }
 
-        private async Task<bool> VerifyImageAsync(string clickImage, string scanImage)
+        private async Task<FaceVerifyResponseUI> VerifyImageAsync(string clickImage, string scanImage)
         {
             try
             {
+                FaceVerifyResponseUI response = new FaceVerifyResponseUI();
+
                 var request = new MatchFacesRequestUI()
                 {
                     ClickedImage = clickImage,
@@ -263,18 +266,18 @@ namespace CheckInKiosk
                 // Use the custom HttpClientService to send the POST request
                 var responseData = await _httpClientService.PostAsync(APIEndpoint.FACE_MATCHING_API, jsonContent);
 
-                // Check if responseData is null, indicating a failed request
-                if (responseData == null)
-                {
-                    return false;
-                }
-
                 // Parse the response data to extract the 'data' field
                 var jsonDocument = JsonDocument.Parse(responseData);
                 var data = jsonDocument.RootElement.GetProperty("data");
-                bool isVerified = data.GetProperty("isIdentical").GetBoolean();
 
-                return isVerified;
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+
+                response = JsonSerializer.Deserialize<FaceVerifyResponseUI>(data, options);
+
+                return response;
             }
             catch (TaskCanceledException)
             {
@@ -282,16 +285,7 @@ namespace CheckInKiosk
             }
             catch (Exception ex)
             {
-                throw new Exception($"Verification API error: {ex.Message}");
-            }
-        }
-
-        private byte[] BitmapToByteArray(Bitmap bitmap)
-        {
-            using (var memoryStream = new MemoryStream())
-            {
-                bitmap.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Jpeg);
-                return memoryStream.ToArray();
+                throw new Exception(UIMessages.FaceVerification.VerificationApiErrorMessage(ex.Message));
             }
         }
 
@@ -305,13 +299,6 @@ namespace CheckInKiosk
             }
         }
 
-        private void UserControl_Unloaded(object sender, RoutedEventArgs e)
-        {
-            StopCamera();
-            cts?.Cancel(); // Cancel any ongoing tasks
-            cts?.Dispose(); // Dispose of the cancellation token source
-        }
-
         private string BitmapToBase64String(Bitmap bitmapcapturedImage)
         {
             using (MemoryStream ms = new MemoryStream())
@@ -321,6 +308,5 @@ namespace CheckInKiosk
                 return Convert.ToBase64String(imageBytes);
             }
         }
-
     }
 }

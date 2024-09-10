@@ -1,11 +1,6 @@
-﻿using System;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Threading;
 using System.Net.Http;
-using System.Threading.Tasks;
-using Windows.Services.Maps;
-using Windows.Web.Http;
 using System.Text.Json;
 using CheckInKiosk.Utils.Models;
 using CheckInKiosk.Utils.Services;
@@ -15,7 +10,6 @@ using System.Drawing;
 using CheckInKiosk.Utils.Resources.ApplicationData;
 using System.Drawing.Imaging;
 using System.IO;
-using CheckInKiosk.Utils;
 
 namespace CheckInKiosk
 {
@@ -24,7 +18,6 @@ namespace CheckInKiosk
         public event Action OnScanSuccess;
         public event Action OnRetry;
         private HttpClientService _httpClientService;
-
         private string _selectedImagePath;
 
         public ScanDocument()
@@ -79,9 +72,9 @@ namespace CheckInKiosk
         {
             Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog
             {
-                Filter = "Image files (*.jpg, *.jpeg, *.png)|*.jpg;*.jpeg;*.png"
+                Filter = UIConstants.Filter
             };
-
+            
             if (openFileDialog.ShowDialog() == true)
             {
                 _selectedImagePath = openFileDialog.FileName;
@@ -131,7 +124,7 @@ namespace CheckInKiosk
             VerificationMessage.Visibility = Visibility.Visible;
 
             // Set a default message for VerificationMessage
-            VerificationMessage.Text = $"Verifying given details for {documentType}...";
+            VerificationMessage.Text = UIMessages.DocumentVerification.DocVerificationInProgressMessage(documentType);
 
             // Ensure UI updates are applied before starting the verification process
             await Task.Delay(500); // Delay to show the loader and message
@@ -165,7 +158,7 @@ namespace CheckInKiosk
 
                 // Serialize request object to JSON
                 var jsonContent = new StringContent(
-                    System.Text.Json.JsonSerializer.Serialize(request),
+                    JsonSerializer.Serialize(request),
                     System.Text.Encoding.UTF8,
                     UIConstants.CONTENT_TYPE
                 );
@@ -180,7 +173,7 @@ namespace CheckInKiosk
 
                 if (isVerified)
                 {
-                    VerificationMessage.Text = "Document verified successfully!";
+                    VerificationMessage.Text = UIMessages.DocumentVerification.DocVerificationSuccessMessage;
                     OnScanSuccess?.Invoke();
                 }
                 else
@@ -193,10 +186,9 @@ namespace CheckInKiosk
             {
                 // Hide loading indicator and show error message
                 LoadingOverlay.Visibility = Visibility.Collapsed;
-                VerificationMessage.Text = $"An error occurred: {ex.Message}";
+                VerificationMessage.Text = UIMessages.DocumentVerification.DocVerificationErrorMessage(ex.Message);
             }
         }
-
 
         private void OnOkayClick(object sender, RoutedEventArgs e)
         {
@@ -208,7 +200,6 @@ namespace CheckInKiosk
             }
         }
 
-
         private string BitmapToBase64String(Bitmap bitmapcapturedImage)
         {
             using (MemoryStream ms = new MemoryStream())
@@ -218,7 +209,5 @@ namespace CheckInKiosk
                 return Convert.ToBase64String(imageBytes);
             }
         }
-
-
     }
 }

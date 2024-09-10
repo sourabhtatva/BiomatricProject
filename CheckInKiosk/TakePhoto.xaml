@@ -44,6 +44,13 @@
             <Button Content="Okay" Width="150" Height="50" Background="White" Foreground="Black" FontSize="18" FontWeight="Bold" Click="OnOkayClick" HorizontalAlignment="Center"/>
         </StackPanel>
 
+        <!-- API Failed Case Check-In Error Panel -->
+        <StackPanel x:Name="ApiFailedCase" VerticalAlignment="Center" HorizontalAlignment="Center" Width="600" Visibility="Collapsed">
+            <TextBlock TextAlignment="Center" Foreground="White" FontSize="20" Margin="0,0,0,20" TextWrapping="Wrap">
+                Facial Recognition failed. Please try again.</TextBlock>
+            <Button Content="Okay" Width="150" Height="50" Background="White" Foreground="Black" FontSize="18" FontWeight="Bold" Click="OnOkayClick" HorizontalAlignment="Center"/>
+        </StackPanel>
+
         <!-- Loading Indicator and Message Centered -->
         <Grid x:Name="LoadingOverlay" Visibility="Collapsed">
             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">

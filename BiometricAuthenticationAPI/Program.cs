@@ -6,24 +6,20 @@ using BiometricAuthenticationAPI.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Create HTTP Client
-builder.Services.AddHttpClient<AzureFaceService>(client =>
-{
-    client.BaseAddress = new Uri(builder.Configuration["AzureFaceApi:Endpoint"]);
-    client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", builder.Configuration["AzureFaceApi:Key"]);
-});
-
 // Add services to the container.
-//builder.Services.AddSingleton<IAzureFaceService, AzureFaceService>();
+
+// Singleton Lifetime Services
 builder.Services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
 builder.Services.AddSingleton<IMemoryCacheService, MemoryCacheService>();
 
+// Scoped Lifetime Services
 builder.Services.AddScoped<IFaceMatchService, FaceMatchService>();
 builder.Services.AddScoped<IAwsFaceService, AwsFaceService>();
 builder.Services.AddScoped<IUserIdentificationDataService, UserIdentificationDataService>();
 builder.Services.AddScoped<IUserIdentificationTypeService, UserIdentificationTypeService>();
 builder.Services.AddScoped<IRecognitionLogService, RecognitionLogService>();
 
+// Transient Lifetime Repositories
 builder.Services.AddTransient<IUserIdentificationDataRepository, UserIdentificationDataRepository>();
 builder.Services.AddTransient<IRecognitionLogRepository, RecognitionLogRepository>();
 builder.Services.AddTransient<IUserIdentificationTypeRepository, UserIdentificationTypeRepository>();

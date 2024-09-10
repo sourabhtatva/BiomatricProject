@@ -30,7 +30,7 @@ namespace BiometricAuthenticationAPI.Controllers
 
                 FaceVerifyResponse? response = await _faceMatchService.MatchFace(request);
 
-                return this.SuccessResult(response, Messages.FaceMatching.General.FaceMatchingMessage(_entityName));
+                return this.SuccessResult(response, Messages.FaceMatching.General.FaceMatchingMessage(_entityName));                                
             }
             catch (Exception ex)
             {

@@ -35,12 +35,10 @@ namespace BiometricAuthenticationAPI.Controllers
                 }
 
                 var response = await _userIdentificationDataService.InsertUserIdentificationData(userIdentificationData);
-                if(response == null)
-                {
-                    return BadRequest(Messages.UserIdentificationData.General.AddError);
-                }
 
-                return this.SuccessResult(response, Messages.UserIdentificationData.General.AddMessage(_entityName));
+                return response == null
+                    ? this.FailureResult(Messages.UserIdentificationData.General.AddError(_entityName))
+                    : this.SuccessResult(response, Messages.UserIdentificationData.General.AddMessage(_entityName));
             }
             catch (Exception ex)
             {
@@ -66,11 +64,9 @@ namespace BiometricAuthenticationAPI.Controllers
                 }
 
                 var response = await _userIdentificationDataService.ValidateUserIdentificationData(documentDetail);
-                if(!response.IsValid && response.RejectReason == RejectReason.GeneralError)
-                {
-                    return BadRequest(Messages.UserIdentificationData.General.ValidateErrorMessage(_entityName));
-                }
-                return this.SuccessResult(response, Messages.UserIdentificationData.General.ValidateMessage(_entityName));
+                return !response.IsValid && response.RejectReason == RejectReason.GeneralError
+                    ?  this.FailureResult(Messages.UserIdentificationData.General.ValidateErrorMessage(_entityName))
+                    :  this.SuccessResult(response, Messages.UserIdentificationData.General.ValidateMessage(_entityName));
             }
             catch (Exception ex)
             {

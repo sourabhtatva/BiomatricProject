@@ -1,5 +1,4 @@
-﻿using BiometricAuthenticationAPI.Data;
-using BiometricAuthenticationAPI.Data.Models;
+﻿using BiometricAuthenticationAPI.Data.Models;
 
 namespace BiometricAuthenticationAPI.Repositories.Interfaces
 {

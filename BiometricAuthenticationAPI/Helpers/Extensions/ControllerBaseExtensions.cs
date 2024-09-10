@@ -21,5 +21,18 @@ namespace BiometricAuthenticationAPI.Helpers.Extensions
 
             return controller.StatusCode((int)HttpStatusCode.OK, response);
         }
+
+        public static ObjectResult FailureResult(this ControllerBase controller, object? data, string? message = null)
+        {
+            var response = new BaseResponse
+            {
+                Data = data,
+                Code = (int)HttpStatusCode.BadRequest,
+                IsSuccess = false,
+                Message = message ?? string.Empty,
+            };
+
+            return controller.StatusCode((int)HttpStatusCode.BadRequest, response);
+        }
     }
 }
