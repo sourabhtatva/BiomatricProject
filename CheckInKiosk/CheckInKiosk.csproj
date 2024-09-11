@@ -13,6 +13,19 @@
     <None Remove="Utils\Resources\Images\bm2.png" />
     <None Remove="Utils\Resources\Images\FaceRecLogo.png" />
     <None Remove="Utils\Resources\Images\pngegg.png" />
+    <None Remove="Utils\Resources\Images\scanner.gif" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <COMReference Include="WIA">
+      <WrapperTool>tlbimp</WrapperTool>
+      <VersionMinor>0</VersionMinor>
+      <VersionMajor>1</VersionMajor>
+      <Guid>94a0e92d-43c0-494e-ac29-fd45948a5221</Guid>
+      <Lcid>0</Lcid>
+      <Isolated>false</Isolated>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </COMReference>
   </ItemGroup>
 
   <ItemGroup>
@@ -23,6 +36,10 @@
     <PackageReference Include="Emgu.CV.runtime.windows" Version="4.9.0.5494" />
     <PackageReference Include="Emgu.CV.UI" Version="4.9.0.5494" />
     <PackageReference Include="System.Drawing.Common" Version="8.0.8" />
+    <PackageReference Include="Tesseract" Version="5.2.0" />
+    <PackageReference Include="Tesseract-OCR" Version="1.0.4" />
+    <PackageReference Include="TwainDotNet" Version="1.0.0" />
+    <PackageReference Include="WpfAnimatedGif" Version="2.0.2" />
   </ItemGroup>
 	<Target Name="CopyDlls" AfterTargets="Build">
 		<Copy SourceFiles="$(ProjectDir)Utils\Resources\XMLFile\haarcascade_frontalface_default.xml" DestinationFolder="$(OutputPath)" />
@@ -36,6 +53,7 @@
     <Resource Include="Utils\Resources\Images\pngegg.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Utils\Resources\Images\scanner.gif" />
   </ItemGroup>
 
 </Project>

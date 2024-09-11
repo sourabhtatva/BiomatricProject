@@ -183,7 +183,9 @@ namespace CheckInKiosk
             CapturePhotoTitle.Visibility = Visibility.Collapsed;
             MainContent.Visibility = Visibility.Collapsed;
 
-            string documentScannedImageBase64String = ApplicationData.DocumentScannedImage;
+            byte[] scannedImageData = Convert.FromBase64String(ApplicationData.DocumentScannedImage);
+            byte[] encryptedScannedImageData = Encryptor.EncryptByteArray(scannedImageData);
+            string documentScannedImageBase64String = Convert.ToBase64String(encryptedScannedImageData);
 
             string clickedImageDataBase64String = BitmapToBase64String(capturedImage);
 

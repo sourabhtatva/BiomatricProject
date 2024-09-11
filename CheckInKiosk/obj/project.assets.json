@@ -929,6 +929,15 @@
           }
         }
       },
+      "System.Reflection.Emit/4.7.0": {
+        "type": "package",
+        "compile": {
+          "ref/netcoreapp2.0/_._": {}
+        },
+        "runtime": {
+          "lib/netcoreapp2.0/_._": {}
+        }
+      },
       "System.Reflection.Extensions/4.3.0": {
         "type": "package",
         "dependencies": {
@@ -1215,6 +1224,59 @@
         "runtime": {
           "lib/netcoreapp2.1/_._": {}
         }
+      },
+      "Tesseract/5.2.0": {
+        "type": "package",
+        "dependencies": {
+          "System.Reflection.Emit": "4.7.0"
+        },
+        "compile": {
+          "lib/netstandard2.0/Tesseract.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/Tesseract.dll": {
+            "related": ".xml"
+          }
+        },
+        "build": {
+          "build/Tesseract.targets": {}
+        }
+      },
+      "Tesseract-OCR/1.0.4": {
+        "type": "package"
+      },
+      "TwainDotNet/1.0.0": {
+        "type": "package",
+        "compile": {
+          "lib/TwainDotNet.WinFroms.dll": {},
+          "lib/TwainDotNet.Wpf.dll": {},
+          "lib/TwainDotNet.dll": {},
+          "lib/log4net.dll": {}
+        },
+        "runtime": {
+          "lib/TwainDotNet.WinFroms.dll": {},
+          "lib/TwainDotNet.Wpf.dll": {},
+          "lib/TwainDotNet.dll": {},
+          "lib/log4net.dll": {}
+        }
+      },
+      "WpfAnimatedGif/2.0.2": {
+        "type": "package",
+        "compile": {
+          "lib/netcoreapp3.0/WpfAnimatedGif.dll": {
+            "related": ".pdb;.xml"
+          }
+        },
+        "runtime": {
+          "lib/netcoreapp3.0/WpfAnimatedGif.dll": {
+            "related": ".pdb;.xml"
+          }
+        },
+        "frameworkReferences": [
+          "Microsoft.WindowsDesktop.App.WPF"
+        ]
       },
       "BiometricAuthenticationAPI/1.0.0": {
         "type": "project",
@@ -2876,6 +2938,60 @@
         "system.reflection.nuspec"
       ]
     },
+    "System.Reflection.Emit/4.7.0": {
+      "sha512": "VR4kk8XLKebQ4MZuKuIni/7oh+QGFmZW3qORd1GvBq/8026OpW501SzT/oypwiQl4TvT8ErnReh/NzY9u+C6wQ==",
+      "type": "package",
+      "path": "system.reflection.emit/4.7.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE.TXT",
+        "THIRD-PARTY-NOTICES.TXT",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net45/_._",
+        "lib/netcore50/System.Reflection.Emit.dll",
+        "lib/netcoreapp2.0/_._",
+        "lib/netstandard1.1/System.Reflection.Emit.dll",
+        "lib/netstandard1.1/System.Reflection.Emit.xml",
+        "lib/netstandard1.3/System.Reflection.Emit.dll",
+        "lib/netstandard2.0/System.Reflection.Emit.dll",
+        "lib/netstandard2.0/System.Reflection.Emit.xml",
+        "lib/netstandard2.1/_._",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "lib/xamarintvos10/_._",
+        "lib/xamarinwatchos10/_._",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/net45/_._",
+        "ref/netcoreapp2.0/_._",
+        "ref/netstandard1.1/System.Reflection.Emit.dll",
+        "ref/netstandard1.1/System.Reflection.Emit.xml",
+        "ref/netstandard1.1/de/System.Reflection.Emit.xml",
+        "ref/netstandard1.1/es/System.Reflection.Emit.xml",
+        "ref/netstandard1.1/fr/System.Reflection.Emit.xml",
+        "ref/netstandard1.1/it/System.Reflection.Emit.xml",
+        "ref/netstandard1.1/ja/System.Reflection.Emit.xml",
+        "ref/netstandard1.1/ko/System.Reflection.Emit.xml",
+        "ref/netstandard1.1/ru/System.Reflection.Emit.xml",
+        "ref/netstandard1.1/zh-hans/System.Reflection.Emit.xml",
+        "ref/netstandard1.1/zh-hant/System.Reflection.Emit.xml",
+        "ref/netstandard2.0/System.Reflection.Emit.dll",
+        "ref/netstandard2.0/System.Reflection.Emit.xml",
+        "ref/netstandard2.1/_._",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "ref/xamarintvos10/_._",
+        "ref/xamarinwatchos10/_._",
+        "runtimes/aot/lib/netcore50/System.Reflection.Emit.dll",
+        "runtimes/aot/lib/netcore50/System.Reflection.Emit.xml",
+        "system.reflection.emit.4.7.0.nupkg.sha512",
+        "system.reflection.emit.nuspec",
+        "useSharedDesignerContext.txt",
+        "version.txt"
+      ]
+    },
     "System.Reflection.Extensions/4.3.0": {
       "sha512": "rJkrJD3kBI5B712aRu4DpSIiHRtr6QlfZSQsb0hYHrDCZORXCFjQfoipo2LaMUHoT9i1B7j7MnfaEKWDFmFQNQ==",
       "type": "package",
@@ -3901,6 +4017,126 @@
         "version.txt"
       ]
     },
+    "Tesseract/5.2.0": {
+      "sha512": "YB7feJlrTWSXtK8+WaCcseGSPK/1r2d2FWeKGyndlrPwYClrzTlCoHD4/oQEUjKafmpkWlhTZZ7pxiRJYZgj6w==",
+      "type": "package",
+      "path": "tesseract/5.2.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "build/Tesseract.targets",
+        "lib/net47/Tesseract.dll",
+        "lib/net48/Tesseract.dll",
+        "lib/netstandard2.0/Tesseract.dll",
+        "lib/netstandard2.0/Tesseract.xml",
+        "tesseract.5.2.0.nupkg.sha512",
+        "tesseract.nuspec",
+        "x64/leptonica-1.82.0.dll",
+        "x64/tesseract50.dll",
+        "x86/leptonica-1.82.0.dll",
+        "x86/tesseract50.dll"
+      ]
+    },
+    "Tesseract-OCR/1.0.4": {
+      "sha512": "dXjJw1+0PW1fvkxw8ZnCQiwQWUMruHH1EVOYeM27IXQL4ruNquVFJQncGhIe1UxaxH7gTDw806USKK7Jx+XtGg==",
+      "type": "package",
+      "path": "tesseract-ocr/1.0.4",
+      "hasTools": true,
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "content/Tesseract-OCR/ambiguous_words.exe",
+        "content/Tesseract-OCR/classifier_tester.exe",
+        "content/Tesseract-OCR/cntraining.exe",
+        "content/Tesseract-OCR/combine_tessdata.exe",
+        "content/Tesseract-OCR/dawg2wordlist.exe",
+        "content/Tesseract-OCR/doc/AUTHORS",
+        "content/Tesseract-OCR/doc/COPYING",
+        "content/Tesseract-OCR/doc/README",
+        "content/Tesseract-OCR/doc/ReleaseNotes",
+        "content/Tesseract-OCR/doc/eurotext.tif",
+        "content/Tesseract-OCR/doc/phototest.tif",
+        "content/Tesseract-OCR/java/ScrollView.jar",
+        "content/Tesseract-OCR/mftraining.exe",
+        "content/Tesseract-OCR/output/ocr_output_buffer.txt",
+        "content/Tesseract-OCR/shapeclustering.exe",
+        "content/Tesseract-OCR/tessdata/chi_sim.traineddata",
+        "content/Tesseract-OCR/tessdata/configs/ambigs.train",
+        "content/Tesseract-OCR/tessdata/configs/api_config",
+        "content/Tesseract-OCR/tessdata/configs/bigram",
+        "content/Tesseract-OCR/tessdata/configs/box.train",
+        "content/Tesseract-OCR/tessdata/configs/box.train.stderr",
+        "content/Tesseract-OCR/tessdata/configs/digits",
+        "content/Tesseract-OCR/tessdata/configs/hocr",
+        "content/Tesseract-OCR/tessdata/configs/inter",
+        "content/Tesseract-OCR/tessdata/configs/kannada",
+        "content/Tesseract-OCR/tessdata/configs/linebox",
+        "content/Tesseract-OCR/tessdata/configs/logfile",
+        "content/Tesseract-OCR/tessdata/configs/makebox",
+        "content/Tesseract-OCR/tessdata/configs/quiet",
+        "content/Tesseract-OCR/tessdata/configs/rebox",
+        "content/Tesseract-OCR/tessdata/configs/strokewidth",
+        "content/Tesseract-OCR/tessdata/configs/unlv",
+        "content/Tesseract-OCR/tessdata/eng.cube.bigrams",
+        "content/Tesseract-OCR/tessdata/eng.cube.fold",
+        "content/Tesseract-OCR/tessdata/eng.cube.lm",
+        "content/Tesseract-OCR/tessdata/eng.cube.lm_",
+        "content/Tesseract-OCR/tessdata/eng.cube.nn",
+        "content/Tesseract-OCR/tessdata/eng.cube.params",
+        "content/Tesseract-OCR/tessdata/eng.cube.size",
+        "content/Tesseract-OCR/tessdata/eng.cube.word-freq",
+        "content/Tesseract-OCR/tessdata/eng.tesseract_cube.nn",
+        "content/Tesseract-OCR/tessdata/eng.traineddata",
+        "content/Tesseract-OCR/tessdata/tessconfigs/batch",
+        "content/Tesseract-OCR/tessdata/tessconfigs/batch.nochop",
+        "content/Tesseract-OCR/tessdata/tessconfigs/matdemo",
+        "content/Tesseract-OCR/tessdata/tessconfigs/msdemo",
+        "content/Tesseract-OCR/tessdata/tessconfigs/nobatch",
+        "content/Tesseract-OCR/tessdata/tessconfigs/segdemo",
+        "content/Tesseract-OCR/tesseract.exe",
+        "content/Tesseract-OCR/unicharset_extractor.exe",
+        "content/Tesseract-OCR/wordlist2dawg.exe",
+        "tesseract-ocr.1.0.4.nupkg.sha512",
+        "tesseract-ocr.nuspec",
+        "tools/install.ps1",
+        "tools/uninstall.ps1"
+      ]
+    },
+    "TwainDotNet/1.0.0": {
+      "sha512": "e6vf9stFVj1RhwRUDEqa5rlQLcfkA+SVtgx/5GxtxbPGMTWHbv8rE4oJd98Ze9lLG7NZRQ6gTKsUxC7Yu/njSA==",
+      "type": "package",
+      "path": "twaindotnet/1.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/TwainDotNet.WinFroms.dll",
+        "lib/TwainDotNet.Wpf.dll",
+        "lib/TwainDotNet.dll",
+        "lib/log4net.dll",
+        "twaindotnet.1.0.0.nupkg.sha512",
+        "twaindotnet.nuspec"
+      ]
+    },
+    "WpfAnimatedGif/2.0.2": {
+      "sha512": "B0j9SqtThyHVTiOPvu6yR+39Te0g3o+7Jjb+qEm7+Iz1HRqbE5/4QV+ntHWOYYBPOUFr9x1mdzGl/EzWP+nKiA==",
+      "type": "package",
+      "path": "wpfanimatedgif/2.0.2",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net35/WpfAnimatedGif.dll",
+        "lib/net35/WpfAnimatedGif.pdb",
+        "lib/net35/WpfAnimatedGif.xml",
+        "lib/net40/WpfAnimatedGif.dll",
+        "lib/net40/WpfAnimatedGif.pdb",
+        "lib/net40/WpfAnimatedGif.xml",
+        "lib/netcoreapp3.0/WpfAnimatedGif.dll",
+        "lib/netcoreapp3.0/WpfAnimatedGif.pdb",
+        "lib/netcoreapp3.0/WpfAnimatedGif.xml",
+        "wpfanimatedgif.2.0.2.nupkg.sha512",
+        "wpfanimatedgif.nuspec"
+      ]
+    },
     "BiometricAuthenticationAPI/1.0.0": {
       "type": "project",
       "path": "../BiometricAuthenticationAPI/BiometricAuthenticationAPI.csproj",
@@ -3916,44 +4152,51 @@
       "Emgu.CV >= 4.9.0.5494",
       "Emgu.CV.UI >= 4.9.0.5494",
       "Emgu.CV.runtime.windows >= 4.9.0.5494",
-      "System.Drawing.Common >= 8.0.8"
+      "System.Drawing.Common >= 8.0.8",
+      "Tesseract >= 5.2.0",
+      "Tesseract-OCR >= 1.0.4",
+      "TwainDotNet >= 1.0.0",
+      "WpfAnimatedGif >= 2.0.2"
     ]
   },
   "packageFolders": {
-    "C:\\Users\\ptdrd\\.nuget\\packages\\": {},
-    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+    "C:\\Users\\LPT165\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {},
+    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Projects\\Projects\\CheckInKiosk\\CheckInKiosk.csproj",
+      "projectUniqueName": "D:\\Projects\\Daifuku\\BiometricProject\\CheckInKiosk\\CheckInKiosk.csproj",
       "projectName": "CheckInKiosk",
-      "projectPath": "D:\\Projects\\Projects\\CheckInKiosk\\CheckInKiosk.csproj",
-      "packagesPath": "C:\\Users\\ptdrd\\.nuget\\packages\\",
-      "outputPath": "D:\\Projects\\Projects\\CheckInKiosk\\obj\\",
+      "projectPath": "D:\\Projects\\Daifuku\\BiometricProject\\CheckInKiosk\\CheckInKiosk.csproj",
+      "packagesPath": "C:\\Users\\LPT165\\.nuget\\packages\\",
+      "outputPath": "D:\\Projects\\Daifuku\\BiometricProject\\CheckInKiosk\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
-        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
+        "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
       ],
       "configFilePaths": [
-        "C:\\Users\\ptdrd\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\LPT165\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\ServiceFabricSDK.config"
       ],
       "originalTargetFrameworks": [
         "net8.0-windows10.0.18362.0"
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-        "C:\\Program Files\\dotnet\\library-packs": {},
+        "C:\\Program Files\\Microsoft SDKs\\Service Fabric\\packages": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
         "net8.0-windows10.0.18362": {
           "targetAlias": "net8.0-windows10.0.18362.0",
           "projectReferences": {
-            "D:\\Projects\\Projects\\BiometricAuthenticationAPI\\BiometricAuthenticationAPI.csproj": {
-              "projectPath": "D:\\Projects\\Projects\\BiometricAuthenticationAPI\\BiometricAuthenticationAPI.csproj"
+            "D:\\Projects\\Daifuku\\BiometricProject\\BiometricAuthenticationAPI\\BiometricAuthenticationAPI.csproj": {
+              "projectPath": "D:\\Projects\\Daifuku\\BiometricProject\\BiometricAuthenticationAPI\\BiometricAuthenticationAPI.csproj"
             }
           }
         }
@@ -3962,11 +4205,6 @@
         "warnAsError": [
           "NU1605"
         ]
-      },
-      "restoreAuditProperties": {
-        "enableAudit": "true",
-        "auditLevel": "low",
-        "auditMode": "direct"
       }
     },
     "frameworks": {
@@ -4000,6 +4238,22 @@
           "System.Drawing.Common": {
             "target": "Package",
             "version": "[8.0.8, )"
+          },
+          "Tesseract": {
+            "target": "Package",
+            "version": "[5.2.0, )"
+          },
+          "Tesseract-OCR": {
+            "target": "Package",
+            "version": "[1.0.4, )"
+          },
+          "TwainDotNet": {
+            "target": "Package",
+            "version": "[1.0.0, )"
+          },
+          "WpfAnimatedGif": {
+            "target": "Package",
+            "version": "[2.0.2, )"
           }
         },
         "imports": [
@@ -4016,7 +4270,7 @@
         "downloadDependencies": [
           {
             "name": "Microsoft.Windows.SDK.NET.Ref",
-            "version": "[10.0.18362.34, 10.0.18362.34]"
+            "version": "[10.0.18362.31, 10.0.18362.31]"
           }
         ],
         "frameworkReferences": {
@@ -4030,7 +4284,7 @@
             "privateAssets": "none"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.400/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.101/PortableRuntimeIdentifierGraph.json"
       }
     }
   },
@@ -4071,6 +4325,16 @@
       "warningLevel": 1,
       "message": "Package 'DirectShowLib 1.0.0' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0-windows10.0.18362'. This package may not be fully compatible with your project.",
       "libraryId": "DirectShowLib",
+      "targetGraphs": [
+        "net8.0-windows10.0.18362"
+      ]
+    },
+    {
+      "code": "NU1701",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'TwainDotNet 1.0.0' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0-windows10.0.18362'. This package may not be fully compatible with your project.",
+      "libraryId": "TwainDotNet",
       "targetGraphs": [
         "net8.0-windows10.0.18362"
       ]

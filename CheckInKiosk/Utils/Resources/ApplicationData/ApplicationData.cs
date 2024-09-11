@@ -3,5 +3,6 @@
     public static class ApplicationData
     {
         public static string DocumentScannedImage { get; set; }
+        public static string PassportNumber { get; set; }
     }
 }

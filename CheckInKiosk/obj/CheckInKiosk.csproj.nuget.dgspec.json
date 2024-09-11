@@ -1,32 +1,34 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Projects\\Projects\\CheckInKiosk\\CheckInKiosk.csproj": {}
+    "D:\\Projects\\Daifuku\\BiometricProject\\CheckInKiosk\\CheckInKiosk.csproj": {}
   },
   "projects": {
-    "D:\\Projects\\Projects\\BiometricAuthenticationAPI\\BiometricAuthenticationAPI.csproj": {
+    "D:\\Projects\\Daifuku\\BiometricProject\\BiometricAuthenticationAPI\\BiometricAuthenticationAPI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Projects\\Projects\\BiometricAuthenticationAPI\\BiometricAuthenticationAPI.csproj",
+        "projectUniqueName": "D:\\Projects\\Daifuku\\BiometricProject\\BiometricAuthenticationAPI\\BiometricAuthenticationAPI.csproj",
         "projectName": "BiometricAuthenticationAPI",
-        "projectPath": "D:\\Projects\\Projects\\BiometricAuthenticationAPI\\BiometricAuthenticationAPI.csproj",
-        "packagesPath": "C:\\Users\\ptdrd\\.nuget\\packages\\",
-        "outputPath": "D:\\Projects\\Projects\\BiometricAuthenticationAPI\\obj\\",
+        "projectPath": "D:\\Projects\\Daifuku\\BiometricProject\\BiometricAuthenticationAPI\\BiometricAuthenticationAPI.csproj",
+        "packagesPath": "C:\\Users\\LPT165\\.nuget\\packages\\",
+        "outputPath": "D:\\Projects\\Daifuku\\BiometricProject\\BiometricAuthenticationAPI\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
+          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
         ],
         "configFilePaths": [
-          "C:\\Users\\ptdrd\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\LPT165\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\ServiceFabricSDK.config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
+          "C:\\Program Files\\Microsoft SDKs\\Service Fabric\\packages": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -39,11 +41,6 @@
           "warnAsError": [
             "NU1605"
           ]
-        },
-        "restoreAuditProperties": {
-          "enableAudit": "true",
-          "auditLevel": "low",
-          "auditMode": "direct"
         }
       },
       "frameworks": {
@@ -86,41 +83,43 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.400/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.101/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "D:\\Projects\\Projects\\CheckInKiosk\\CheckInKiosk.csproj": {
+    "D:\\Projects\\Daifuku\\BiometricProject\\CheckInKiosk\\CheckInKiosk.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Projects\\Projects\\CheckInKiosk\\CheckInKiosk.csproj",
+        "projectUniqueName": "D:\\Projects\\Daifuku\\BiometricProject\\CheckInKiosk\\CheckInKiosk.csproj",
         "projectName": "CheckInKiosk",
-        "projectPath": "D:\\Projects\\Projects\\CheckInKiosk\\CheckInKiosk.csproj",
-        "packagesPath": "C:\\Users\\ptdrd\\.nuget\\packages\\",
-        "outputPath": "D:\\Projects\\Projects\\CheckInKiosk\\obj\\",
+        "projectPath": "D:\\Projects\\Daifuku\\BiometricProject\\CheckInKiosk\\CheckInKiosk.csproj",
+        "packagesPath": "C:\\Users\\LPT165\\.nuget\\packages\\",
+        "outputPath": "D:\\Projects\\Daifuku\\BiometricProject\\CheckInKiosk\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
+          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
         ],
         "configFilePaths": [
-          "C:\\Users\\ptdrd\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\LPT165\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\ServiceFabricSDK.config"
         ],
         "originalTargetFrameworks": [
           "net8.0-windows10.0.18362.0"
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
+          "C:\\Program Files\\Microsoft SDKs\\Service Fabric\\packages": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net8.0-windows10.0.18362": {
             "targetAlias": "net8.0-windows10.0.18362.0",
             "projectReferences": {
-              "D:\\Projects\\Projects\\BiometricAuthenticationAPI\\BiometricAuthenticationAPI.csproj": {
-                "projectPath": "D:\\Projects\\Projects\\BiometricAuthenticationAPI\\BiometricAuthenticationAPI.csproj"
+              "D:\\Projects\\Daifuku\\BiometricProject\\BiometricAuthenticationAPI\\BiometricAuthenticationAPI.csproj": {
+                "projectPath": "D:\\Projects\\Daifuku\\BiometricProject\\BiometricAuthenticationAPI\\BiometricAuthenticationAPI.csproj"
               }
             }
           }
@@ -129,11 +128,6 @@
           "warnAsError": [
             "NU1605"
           ]
-        },
-        "restoreAuditProperties": {
-          "enableAudit": "true",
-          "auditLevel": "low",
-          "auditMode": "direct"
         }
       },
       "frameworks": {
@@ -167,6 +161,22 @@
             "System.Drawing.Common": {
               "target": "Package",
               "version": "[8.0.8, )"
+            },
+            "Tesseract": {
+              "target": "Package",
+              "version": "[5.2.0, )"
+            },
+            "Tesseract-OCR": {
+              "target": "Package",
+              "version": "[1.0.4, )"
+            },
+            "TwainDotNet": {
+              "target": "Package",
+              "version": "[1.0.0, )"
+            },
+            "WpfAnimatedGif": {
+              "target": "Package",
+              "version": "[2.0.2, )"
             }
           },
           "imports": [
@@ -183,7 +193,7 @@
           "downloadDependencies": [
             {
               "name": "Microsoft.Windows.SDK.NET.Ref",
-              "version": "[10.0.18362.34, 10.0.18362.34]"
+              "version": "[10.0.18362.31, 10.0.18362.31]"
             }
           ],
           "frameworkReferences": {
@@ -197,7 +207,7 @@
               "privateAssets": "none"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.400/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.101/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

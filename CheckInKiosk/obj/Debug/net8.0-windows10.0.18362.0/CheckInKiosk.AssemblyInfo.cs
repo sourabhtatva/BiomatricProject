@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CheckInKiosk")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1bd5b07480f395893e8c62f7024219f2ac4d9276")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+01e5b90f67cf3f8dfdb13b66b268df532abde613")]
 [assembly: System.Reflection.AssemblyProductAttribute("CheckInKiosk")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CheckInKiosk")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
