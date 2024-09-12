@@ -149,7 +149,7 @@ namespace CheckInKiosk
             try
             {
                 // Path to tessdata folder containing language data
-                string tessDataPath = Path.Combine("D:\\Projects\\Daifuku\\BiometricProject\\CheckInKiosk\\tessdata", "eng.traineddata");
+                string tessDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "eng.traineddata");
 
                 if (!File.Exists(tessDataPath))
                 {
@@ -157,7 +157,7 @@ namespace CheckInKiosk
                 }
 
                 // Initialize Tesseract OCR Engine
-                using (var ocrEngine = new TesseractEngine("D:\\Projects\\Daifuku\\BiometricProject\\CheckInKiosk\\tessdata", "eng", EngineMode.Default))
+                using (var ocrEngine = new TesseractEngine(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data"), "eng", EngineMode.Default))
                 {
                     // Load the image from file
                     using (var img = Pix.LoadFromMemory(imageData))

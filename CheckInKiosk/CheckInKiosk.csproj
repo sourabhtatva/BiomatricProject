@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Data\eng.traineddata" />
     <None Remove="Utils\Resources\Images\bm2.png" />
     <None Remove="Utils\Resources\Images\FaceRecLogo.png" />
     <None Remove="Utils\Resources\Images\pngegg.png" />
@@ -26,6 +27,12 @@
       <Isolated>false</Isolated>
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </COMReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Data\eng.traineddata">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
