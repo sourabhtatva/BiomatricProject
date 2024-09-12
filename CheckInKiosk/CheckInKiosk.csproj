@@ -26,6 +26,9 @@
   </ItemGroup>
 	<Target Name="CopyDlls" AfterTargets="Build">
 		<Copy SourceFiles="$(ProjectDir)Utils\Resources\XMLFile\haarcascade_frontalface_default.xml" DestinationFolder="$(OutputPath)" />
+		<Copy SourceFiles="$(ProjectDir)Utils\Resources\XMLFile\haarcascade_eye_tree_eyeglasses.xml" DestinationFolder="$(OutputPath)" />
+		<Copy SourceFiles="$(ProjectDir)Utils\Resources\XMLFile\haarcascade_upperbody.xml" DestinationFolder="$(OutputPath)" />
+		<Copy SourceFiles="$(ProjectDir)Utils\Resources\XMLFile\haarcascade_mcs_mouth.xml" DestinationFolder="$(OutputPath)" />
 	</Target>
   <ItemGroup>
     <ProjectReference Include="..\BiometricAuthenticationAPI\BiometricAuthenticationAPI.csproj" />

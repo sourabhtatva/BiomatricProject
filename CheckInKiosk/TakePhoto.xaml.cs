@@ -5,6 +5,7 @@ using CheckInKiosk.Utils.Models;
 using CheckInKiosk.Utils.Resources.ApplicationData;
 using CheckInKiosk.Utils.Services;
 using Emgu.CV;
+using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -15,6 +16,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using Point = System.Drawing.Point;
+
 
 namespace CheckInKiosk
 {
@@ -25,20 +28,35 @@ namespace CheckInKiosk
         private Bitmap capturedImage;
         private CancellationTokenSource cts;
         private DispatcherTimer captureTimer;
+        private DispatcherTimer monitoringTimer;
+        private bool isMonitoring = false;
+
         private bool faceDetected = false;
         private CascadeClassifier faceCascade;
         private HttpClientService _httpClientService;
+        private CascadeClassifier eyeglassesCascade;
+        private CascadeClassifier mouthCascade;
+        private CascadeClassifier upperBodyCascade;
+        private bool eyeglassesDetected = false;
+        private bool maskDetected = false;
+        private bool capDetected = false;
 
         public TakePhoto()
         {
             InitializeComponent();
             faceCascade = new CascadeClassifier(UIConstants.Haarcascade_Frontalface_Path);
+            eyeglassesCascade = new CascadeClassifier(UIConstants.Haarcascade_Sunglasses_Path);
+            mouthCascade = new CascadeClassifier(UIConstants.Haarcascade_Mask_Path);
+            upperBodyCascade = new CascadeClassifier(UIConstants.Haarcascade_Upperbody_Path);
 
-            // Initialize the timer
             captureTimer = new DispatcherTimer();
-            // Set delay for 3 seconds
-            captureTimer.Interval = TimeSpan.FromSeconds(3); 
+            captureTimer.Interval = TimeSpan.FromSeconds(50);
             captureTimer.Tick += CaptureTimer_Tick;
+
+            monitoringTimer = new DispatcherTimer();
+            monitoringTimer.Interval = TimeSpan.FromSeconds(10);
+            monitoringTimer.Tick += MonitoringTimer_Tick;
+
 
             // Initialize CancellationTokenSource
             cts = new CancellationTokenSource();
@@ -63,6 +81,53 @@ namespace CheckInKiosk
                 CaptureAndVerify(); // Trigger the capture click method
             }
         }
+        private void MonitoringTimer_Tick(object sender, EventArgs e)
+        {
+            // Stop the timer so it doesn't fire again before processing completes
+            monitoringTimer.Stop();
+
+            // Check the current states of object detection
+            if (faceDetected)
+            {
+                if (!capDetected && !eyeglassesDetected && !maskDetected)
+                {
+                    isMonitoring = false;
+                    monitoringTimer.Stop();
+                    captureTimer.Start();
+                    // All checks passed, no cap, eyeglasses, or mask detected
+                    MessageBox.Show("Face detected successfully without cap, sunglasses, or mask.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    // Display the details of what's been detected
+                    string message = "Face detected, but issues found:\n";
+
+                    if (capDetected)
+                        message += "- Cap detected\n";
+                    if (eyeglassesDetected)
+                        message += "- Eyeglasses detected\n";
+                    if (maskDetected)
+                        message += "- Mask not detected\n"; // Mask condition: Mouth detected -> no mask
+
+                    MessageBox.Show(message, "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+            else
+            {
+                // No face detected
+                MessageBox.Show("No face detected. Please adjust your position.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+            // Reset the detection states for the next monitoring cycle
+            faceDetected = false;
+            eyeglassesDetected = false;
+            maskDetected = false;
+            capDetected = false;
+
+            // Optionally, start the timer again if you want continuous monitoring
+            // monitoringTimer.Start();
+        }
+
 
         public void StartCamera()
         {
@@ -117,7 +182,6 @@ namespace CheckInKiosk
         {
             try
             {
-                // Check if the operation is canceled or the video source is not running
                 if (videoSource == null || !videoSource.IsRunning || cts?.Token.IsCancellationRequested == true)
                 {
                     return;
@@ -128,31 +192,69 @@ namespace CheckInKiosk
                 using (var imageFrame = capturedImage.ToImage<Bgr, byte>())
                 {
                     var grayFrame = imageFrame.Convert<Gray, byte>();
-                    var faces = faceCascade.DetectMultiScale(grayFrame, 1.1, 10, System.Drawing.Size.Empty);
 
+                    // Detect faces
+                    var faces = faceCascade.DetectMultiScale(grayFrame, 1.1, 10, System.Drawing.Size.Empty);
                     foreach (var face in faces)
                     {
                         imageFrame.Draw(face, new Bgr(Color.Red), 2);
                     }
 
+                    // Detect eyeglasses
+                    var eyeglasses = eyeglassesCascade.DetectMultiScale(grayFrame, 1.1, 10, new System.Drawing.Size(30, 30));
+                    eyeglassesDetected = eyeglasses.Length > 0;
+                    foreach (var glass in eyeglasses)
+                    {
+                        imageFrame.Draw(glass, new Bgr(Color.Green), 2);
+                        CvInvoke.PutText(imageFrame, "Eyeglasses Detected", new Point(glass.X, glass.Y - 10), FontFace.HersheySimplex, 0.9, new MCvScalar(0, 255, 0), 2);
+                    }
+
+                    // Detect mouth (for mask detection)
+                    var mouths = mouthCascade.DetectMultiScale(grayFrame, 1.1, 10, System.Drawing.Size.Empty);
+                    maskDetected = mouths.Length == 0;  // No mouth detected -> mask on
+                    foreach (var mouth in mouths)
+                    {
+                        imageFrame.Draw(mouth, new Bgr(Color.Yellow), 2);
+                        CvInvoke.PutText(imageFrame, "Mouth Detected (No Mask)", new Point(mouth.X, mouth.Y - 10), FontFace.HersheySimplex, 0.9, new MCvScalar(0, 255, 255), 2);
+                    }
+
+                    // Detect upper body (used for cap detection)
+                    var upperBodies = upperBodyCascade.DetectMultiScale(grayFrame, 1.1, 10, System.Drawing.Size.Empty);
+                    capDetected = upperBodies.Length > 0;
+                    foreach (var body in upperBodies)
+                    {
+                        imageFrame.Draw(body, new Bgr(Color.Blue), 2);
+                        CvInvoke.PutText(imageFrame, "Cap Detected", new Point(body.X, body.Y - 10), FontFace.HersheySimplex, 0.9, new MCvScalar(255, 0, 0), 2);
+                    }
+
+                    // Update the webcam feed with the processed frame
                     WebcamFeed.Dispatcher.Invoke(() =>
                     {
                         WebcamFeed.Source = BitmapToImageSource(imageFrame.ToBitmap());
                     });
 
-                    if (faces.Length > 0)
+                    // Check monitoring conditions
+                    if (faces.Length > 0 && !capDetected && !eyeglassesDetected && !maskDetected)
                     {
                         if (!faceDetected)
                         {
                             faceDetected = true;
-                            captureTimer.Start(); // Start the timer when a face is detected
+                            if (!isMonitoring)
+                            {
+                                isMonitoring = true;
+                                monitoringTimer.Start(); // Start monitoring if face is detected and no items are present
+                            }
                         }
+                    }
+                    else
+                    {
+                        faceDetected = false;
                     }
                 }
             }
             catch
             {
-                // Handle any exception silently to avoid interfering with application shutdown
+                // Handle exception silently
             }
         }
 
