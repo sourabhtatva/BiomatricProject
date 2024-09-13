@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using System.Windows.Controls;
 using System.Net.Http;
 using System.Text.Json;
@@ -10,6 +11,8 @@ using System.Drawing;
 using CheckInKiosk.Utils.Resources.ApplicationData;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Windows.Media.Animation;
+using System.Windows.Media;
 
 namespace CheckInKiosk
 {
@@ -19,10 +22,13 @@ namespace CheckInKiosk
         public event Action OnRetry;
         private HttpClientService _httpClientService;
         private string _selectedImagePath;
+        private string _documentType;
+        private Storyboard _loadingStoryboard;
 
         public ScanDocument()
         {
             InitializeComponent();
+            InitializeLoaderAnimation();
         }
 
         // Constructor with HttpClientService for manual instantiation
@@ -31,106 +37,140 @@ namespace CheckInKiosk
             _httpClientService = httpClientService;
         }
 
-        // Method to set the HttpClientService after instantiation
         public void SetHttpClientService(HttpClientService httpClientService)
         {
             _httpClientService = httpClientService;
         }
 
-        private void OnDocumentTypeSelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void OnPassportButtonClick(object sender, RoutedEventArgs e)
         {
-            if (DocumentTypeComboBox.SelectedItem == null)
+            try
             {
-                DocumentTypeErrorTextBlock.Visibility = Visibility.Visible;
+                _documentType = "Passport";
+                OnDocumentTypeSelected();
             }
-            else
+            catch (Exception ex)
             {
-                // Show the text field when a document type is selected
-                PlaceholderTextBlock.Visibility = Visibility.Visible;
-                AdditionalInfoTextBox.Visibility = Visibility.Visible;
-                ImageUploadPanel.Visibility = Visibility.Visible;
+                ShowErrorMessage($"Error selecting passport: {ex.Message}");
+            }
+        }
 
-                DocumentTypeErrorTextBlock.Visibility = Visibility.Collapsed;
+        private void OnIDCardButtonClick(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                _documentType = "Vietnam ID";
+                OnDocumentTypeSelected();
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error selecting ID card: {ex.Message}");
+            }
+        }
+
+        private void OnDocumentTypeSelected()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(_documentType))
+                {
+                    DocumentTypeErrorTextBlock.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    PlaceholderTextBlock.Visibility = Visibility.Visible;
+                    AdditionalInfoTextBox.Visibility = Visibility.Visible;
+                    ImageUploadPanel.Visibility = Visibility.Visible;
+                    DocumentTypeErrorTextBlock.Visibility = Visibility.Collapsed;
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error processing document type: {ex.Message}");
             }
         }
 
         private void OnAdditionalInfoTextChanged(object sender, TextChangedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(AdditionalInfoTextBox.Text))
+            try
             {
-                PlaceholderTextBlock.Visibility = Visibility.Visible;
-                AdditionalInfoErrorTextBlock.Visibility = Visibility.Visible;
+                if (string.IsNullOrWhiteSpace(AdditionalInfoTextBox.Text))
+                {
+                    PlaceholderTextBlock.Visibility = Visibility.Visible;
+                    AdditionalInfoErrorTextBlock.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    PlaceholderTextBlock.Visibility = Visibility.Collapsed;
+                    AdditionalInfoErrorTextBlock.Visibility = Visibility.Collapsed;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                PlaceholderTextBlock.Visibility = Visibility.Collapsed;
-                AdditionalInfoErrorTextBlock.Visibility = Visibility.Collapsed;
+                ShowErrorMessage($"Error processing additional information: {ex.Message}");
             }
         }
 
         private void OnChooseImageClick(object sender, RoutedEventArgs e)
         {
-            Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog
+            try
             {
-                Filter = UIConstants.Filter
-            };
-            
-            if (openFileDialog.ShowDialog() == true)
-            {
-                _selectedImagePath = openFileDialog.FileName;
-                UploadedImage.Source = new BitmapImage(new Uri(_selectedImagePath));
-                UploadedImage.Visibility = Visibility.Visible;
-                ImageUploadErrorTextBlock.Visibility = Visibility.Collapsed;
+                Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog
+                {
+                    Filter = UIConstants.Filter
+                };
 
+                if (openFileDialog.ShowDialog() == true)
+                {
+                    _selectedImagePath = openFileDialog.FileName;
+                    UploadedImage.Source = new BitmapImage(new Uri(_selectedImagePath));
+                    UploadedImage.Visibility = Visibility.Visible;
+                    ImageUploadErrorTextBlock.Visibility = Visibility.Collapsed;
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error choosing image: {ex.Message}");
             }
         }
 
         private async void OnSubmitClick(object sender, RoutedEventArgs e)
         {
-            // Get selected document type
-            string documentType = (DocumentTypeComboBox.SelectedItem as ComboBoxItem)?.Content.ToString() ?? string.Empty;
-            string additionalInfo = AdditionalInfoTextBox.Text;
-
-            bool hasError = false;
-
-            // Check if document type is selected
-            if (string.IsNullOrEmpty(documentType))
-            {
-                DocumentTypeErrorTextBlock.Visibility = Visibility.Visible;
-                hasError = true;
-            }
-
-            // Check if additional info or image is empty
-            if (string.IsNullOrEmpty(additionalInfo) && AdditionalInfoTextBox.Visibility == Visibility.Visible)
-            {
-                AdditionalInfoErrorTextBlock.Visibility = Visibility.Visible;
-                hasError = true;
-            }
-
-            if (string.IsNullOrEmpty(_selectedImagePath) && ImageUploadPanel.Visibility == Visibility.Visible)
-            {
-                ImageUploadErrorTextBlock.Visibility = Visibility.Visible;
-                hasError = true;
-            }
-
-            if (hasError)
-            {
-                return; // Exit if there are validation errors
-            }
-
-            // Hide all UI elements except Loading Indicator and Verification Message
-            MainStackPanel.Visibility = Visibility.Collapsed;
-            LoadingOverlay.Visibility = Visibility.Visible;
-            VerificationMessage.Visibility = Visibility.Visible;
-
-            // Set a default message for VerificationMessage
-            VerificationMessage.Text = UIMessages.DocumentVerification.DocVerificationInProgressMessage(documentType);
-
-            // Ensure UI updates are applied before starting the verification process
-            await Task.Delay(500); // Delay to show the loader and message
-
             try
             {
+                string additionalInfo = AdditionalInfoTextBox.Text;
+                bool hasError = false;
+
+                if (string.IsNullOrEmpty(_documentType))
+                {
+                    DocumentTypeErrorTextBlock.Visibility = Visibility.Visible;
+                    hasError = true;
+                }
+
+                if (string.IsNullOrEmpty(additionalInfo) && AdditionalInfoTextBox.Visibility == Visibility.Visible)
+                {
+                    AdditionalInfoErrorTextBlock.Visibility = Visibility.Visible;
+                    hasError = true;
+                }
+
+                if (string.IsNullOrEmpty(_selectedImagePath) && ImageUploadPanel.Visibility == Visibility.Visible)
+                {
+                    ImageUploadErrorTextBlock.Visibility = Visibility.Visible;
+                    hasError = true;
+                }
+
+                if (hasError)
+                {
+                    return;
+                }
+
+                MainStackPanel.Visibility = Visibility.Collapsed;
+                ShowLoadingOverlay();
+                VerificationMessage.Visibility = Visibility.Visible;
+                VerificationMessage.Text = UIMessages.DocumentVerification.DocVerificationInProgressMessage(_documentType);
+
+                await Task.Delay(500);
+
                 string documentScannedImagebase64Image = string.Empty;
 
                 if (!string.IsNullOrEmpty(_selectedImagePath))
@@ -139,8 +179,7 @@ namespace CheckInKiosk
                     documentScannedImagebase64Image = BitmapToBase64String(bitmap);
                 }
 
-                // Encrypt document type and additional info
-                string encryptedDocumentType = Encryptor.EncryptString(documentType);
+                string encryptedDocumentType = Encryptor.EncryptString(_documentType);
                 string encryptedAdditionalInfo = Encryptor.EncryptString(additionalInfo);
 
                 byte[] clickedScannedImageData = Convert.FromBase64String(documentScannedImagebase64Image);
@@ -156,20 +195,17 @@ namespace CheckInKiosk
                     DocumentImage = encryptedScannedImageBase64String
                 };
 
-                // Serialize request object to JSON
                 var jsonContent = new StringContent(
                     JsonSerializer.Serialize(request),
                     System.Text.Encoding.UTF8,
                     UIConstants.CONTENT_TYPE
                 );
                 var responseData = await _httpClientService.PostAsync(APIEndpoint.VALIDATE_DOC_API, jsonContent);
-                // Parse the JSON response and extract the 'data' field as a boolean
                 var jsonDocument = JsonDocument.Parse(responseData);
                 var data = jsonDocument.RootElement.GetProperty("data");
                 bool isVerified = data.GetProperty("isValid").GetBoolean();
 
-                // Hide loading indicator
-                LoadingOverlay.Visibility = Visibility.Collapsed;
+                HideLoadingOverlay();
 
                 if (isVerified)
                 {
@@ -182,17 +218,25 @@ namespace CheckInKiosk
                     ManualCheckInPanel.Visibility = Visibility.Visible;
                 }
             }
+            catch (HttpRequestException ex)
+            {
+                HideLoadingOverlay();
+                ShowErrorMessage("Network error occurred during document verification.");
+            }
+            catch (JsonException ex)
+            {
+                HideLoadingOverlay();
+                ShowErrorMessage("Error parsing server response.");
+            }
             catch (Exception ex)
             {
-                // Hide loading indicator and show error message
-                LoadingOverlay.Visibility = Visibility.Collapsed;
-                VerificationMessage.Text = UIMessages.DocumentVerification.DocVerificationErrorMessage(ex.Message);
+                HideLoadingOverlay();
+                ShowErrorMessage($"An unexpected error occurred: {ex.Message}");
             }
         }
 
         private void OnOkayClick(object sender, RoutedEventArgs e)
         {
-            // Notify the MainWindow to restart the application
             var mainWindow = Application.Current.MainWindow as MainWindow;
             if (mainWindow != null)
             {
@@ -208,6 +252,38 @@ namespace CheckInKiosk
                 byte[] imageBytes = ms.ToArray();
                 return Convert.ToBase64String(imageBytes);
             }
+        }
+
+        private void InitializeLoaderAnimation()
+        {
+            _loadingStoryboard = new Storyboard();
+            var rotateAnimation = new DoubleAnimation
+            {
+                From = 0,
+                To = 360,
+                Duration = new Duration(TimeSpan.FromSeconds(1)),
+                RepeatBehavior = RepeatBehavior.Forever
+            };
+            Storyboard.SetTarget(rotateAnimation, RotateTransform);
+            Storyboard.SetTargetProperty(rotateAnimation, new PropertyPath(RotateTransform.AngleProperty));
+            _loadingStoryboard.Children.Add(rotateAnimation);
+        }
+
+        private void ShowLoadingOverlay()
+        {
+            LoadingOverlay.Visibility = Visibility.Visible;
+            _loadingStoryboard.Begin();
+        }
+
+        private void HideLoadingOverlay()
+        {
+            LoadingOverlay.Visibility = Visibility.Collapsed;
+            _loadingStoryboard.Stop();
+        }
+
+        private void ShowErrorMessage(string message)
+        {
+            MessageBox.Show(message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 }
