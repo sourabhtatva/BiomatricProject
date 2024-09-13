@@ -6,6 +6,9 @@
         {
             public static readonly string SUCCESS = "Success";
             public static readonly string FAILURE = "Failure";
+            public static readonly string USER_ID = "UserId";
+            public static readonly string ERROR_REJECT_REASON = "GeneralError";
+            public static readonly string[] Reasons = { "DocumentNotFound", "PassengerIsBlackListed"};
         }
         public static class Cryptography
         {
