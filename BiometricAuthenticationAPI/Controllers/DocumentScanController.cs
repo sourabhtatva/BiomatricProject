@@ -1,6 +1,5 @@
 ﻿using BiometricAuthenticationAPI.Data.Models;
 using BiometricAuthenticationAPI.Helpers.Constants;
-using BiometricAuthenticationAPI.Helpers.Enums;
 using BiometricAuthenticationAPI.Helpers.Extensions;
 using BiometricAuthenticationAPI.Helpers.Utils;
 using BiometricAuthenticationAPI.Services.Interfaces;
@@ -37,7 +36,7 @@ namespace BiometricAuthenticationAPI.Controllers
                 var response = await _userIdentificationDataService.InsertUserIdentificationData(userIdentificationData);
 
                 return response == null
-                    ? this.FailureResult(Messages.UserIdentificationData.General.AddError(_entityName))
+                    ? this.FailureResult(null, Messages.UserIdentificationData.General.AddError(_entityName))
                     : this.SuccessResult(response, Messages.UserIdentificationData.General.AddMessage(_entityName));
             }
             catch (Exception ex)
@@ -63,9 +62,17 @@ namespace BiometricAuthenticationAPI.Controllers
                     throw new DataValidationException(ModelState);
                 }
 
+                string message = string.Empty;
                 var response = await _userIdentificationDataService.ValidateUserIdentificationData(documentDetail);
-                return !response.IsValid && response.RejectReason == RejectReason.GeneralError
-                    ?  this.FailureResult(Messages.UserIdentificationData.General.ValidateErrorMessage(_entityName))
+
+                if(response != null && !response.IsValid && SystemConstants.General.Reasons.Contains(response.RejectReason))
+                {
+                    message = response.RejectReason;
+                    return this.FailureResult(null, message);
+                }
+
+                return !Convert.ToBoolean(response?.IsValid) && response?.RejectReason == "GeneralError"
+                    ?  this.FailureResult(null,Messages.UserIdentificationData.General.ValidateErrorMessage(_entityName))
                     :  this.SuccessResult(response, Messages.UserIdentificationData.General.ValidateMessage(_entityName));
             }
             catch (Exception ex)

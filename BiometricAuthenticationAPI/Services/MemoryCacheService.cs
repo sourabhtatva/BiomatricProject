@@ -17,6 +17,11 @@ namespace BiometricAuthenticationAPI.Services
             _memoryCache.Set(key, data);
         }
 
+        public void RemoveData(string key)
+        {
+            _memoryCache.Remove(key);
+        }
+
         public string? GetData(string key)
         {
             string? data;

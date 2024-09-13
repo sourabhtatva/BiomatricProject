@@ -1,18 +1,19 @@
 ﻿using BiometricAuthenticationAPI.Data.Models;
 using BiometricAuthenticationAPI.Data.Models.Response;
 using BiometricAuthenticationAPI.Helpers.Constants;
-using BiometricAuthenticationAPI.Helpers.Enums;
 using BiometricAuthenticationAPI.Helpers.Utils;
 using BiometricAuthenticationAPI.Repositories.Interfaces;
 using BiometricAuthenticationAPI.Services.Interfaces;
 using Dapper;
+using System.Data;
 
 namespace BiometricAuthenticationAPI.Services
 {
-    public class UserIdentificationDataService(IUserIdentificationDataRepository userIdentificationDataRepository, IUserIdentificationTypeService userIdentificationTypeService, IMemoryCacheService memoryCacheService) : IUserIdentificationDataService
+    public class UserIdentificationDataService(IUserIdentificationDataRepository userIdentificationDataRepository, IUserIdentificationTypeService userIdentificationTypeService, IDocumentValidationResponseRepository documentValidationResponseRepository, IMemoryCacheService memoryCacheService) : IUserIdentificationDataService
     {
         private readonly IUserIdentificationDataRepository _userIdentificationDataRepository = userIdentificationDataRepository;
         private readonly IUserIdentificationTypeService _userIdentificationTypeService = userIdentificationTypeService;
+        private readonly IDocumentValidationResponseRepository _documentValidationResponseRepository = documentValidationResponseRepository;
         private readonly IMemoryCacheService _memoryCacheService = memoryCacheService;
         private readonly string _entityName = SystemConstants.UserIdentificationData.ENTITY;
 
@@ -161,47 +162,21 @@ namespace BiometricAuthenticationAPI.Services
         /// <param name="documentDetailRequest"></param>
         /// <returns></returns>
         /// <exception cref="DataNotFoundException"></exception>
-        public async Task<DocumentValidateResponse> ValidateUserIdentificationData(DocumentDetailRequest documentDetailRequest)
+        public async Task<DocumentValidateResponse?> ValidateUserIdentificationData(DocumentDetailRequest documentDetailRequest)
         {
+            DocumentValidateResponse documentValidateResponse = new();
             try
             {
                 documentDetailRequest.DocumentNumber = CommonHelper.DecryptString(documentDetailRequest.DocumentNumber);
-                documentDetailRequest.DocumentType = CommonHelper.DecryptString(documentDetailRequest.DocumentType);
 
-                DocumentValidateResponse documentValidateResponse = new()
+                var parameters = new DynamicParameters();
+                parameters.Add(DBConstants.UserIdentificationData.DOCUMENT_NUMBER, documentDetailRequest.DocumentNumber, DbType.String, ParameterDirection.Input);
+
+                documentValidateResponse = await _documentValidationResponseRepository.GetAsync(DBConstants.DocumentValidationResponse.DOCUMENT_VALIDATION_SP, parameters);
+                
+                if (documentValidateResponse?.UserId != null)
                 {
-                    IsValid = true,
-                    RejectReason = RejectReason.None
-                };
-
-                var userIdentificationData = await _userIdentificationDataRepository.GetAllAsync(DBConstants.UserIdentificationData.GET_USER_IDENTIFICATION_DATA) ?? throw new DataNotFoundException(Messages.UserIdentificationData.General.NotFoundMessage(_entityName)); ;
-
-                var userIdentificationType = await _userIdentificationTypeService.GetAllUserIdentificationType() ?? throw new DataNotFoundException(Messages.UserIdentificationType.General.NotFoundMessage(_entityName));
-
-                var userIdData = userIdentificationData.FirstOrDefault(i => i.UserIdNumber == documentDetailRequest.DocumentNumber);
-
-                if(userIdData != null)
-                {
-                    _memoryCacheService.SetData("UserId", Convert.ToString(userIdData.Id));
-                }
-
-                if (!userIdentificationData.Any(i => i.UserIdNumber == documentDetailRequest.DocumentNumber))
-                {
-                    documentValidateResponse.IsValid = false;
-                    documentValidateResponse.RejectReason = RejectReason.DocumentNotFound;
-                    return documentValidateResponse;
-                }
-                if (!userIdentificationType.Any(i => i.Id == userIdData?.UserIdType && i.Type == documentDetailRequest.DocumentType))
-                {
-                    documentValidateResponse.IsValid = false;
-                    documentValidateResponse.RejectReason = RejectReason.InvalidDocumentType;
-                    return documentValidateResponse;
-                }
-                if (userIdentificationData.Any(i => i.UserIdNumber == documentDetailRequest.DocumentNumber && i.IsBlacklistUser))
-                {
-                    documentValidateResponse.IsValid = false;
-                    documentValidateResponse.RejectReason = RejectReason.PassengerIsBlackListed;
-                    return documentValidateResponse;
+                    _memoryCacheService.SetData(SystemConstants.General.USER_ID, Convert.ToString(documentValidateResponse?.UserId ?? 0));
                 }
 
                 return documentValidateResponse;
@@ -209,11 +184,9 @@ namespace BiometricAuthenticationAPI.Services
             catch (Exception ex) 
             { 
                 Console.WriteLine(ex.Message);
-                DocumentValidateResponse documentValidateResponse = new()
-                {
-                    IsValid = false,
-                    RejectReason = RejectReason.GeneralError
-                };
+                documentValidateResponse.IsValid = false;
+                documentValidateResponse.RejectReason = SystemConstants.General.ERROR_REJECT_REASON;
+
                 return documentValidateResponse;
             }
         }
