@@ -28,7 +28,6 @@
             public static readonly string STATE = "State";
             public static readonly string ZIP_CODE = "ZipCode";
             public static readonly string DOCUMENT_NUMBER = "DocumentNumber";
-            public static readonly string DOCUMENT_TYPE = "DocumentType";
             #endregion
         }
 

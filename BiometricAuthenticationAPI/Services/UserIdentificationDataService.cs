@@ -168,11 +168,9 @@ namespace BiometricAuthenticationAPI.Services
             try
             {
                 documentDetailRequest.DocumentNumber = CommonHelper.DecryptString(documentDetailRequest.DocumentNumber);
-                documentDetailRequest.DocumentType = CommonHelper.DecryptString(documentDetailRequest.DocumentType);
 
                 var parameters = new DynamicParameters();
                 parameters.Add(DBConstants.UserIdentificationData.DOCUMENT_NUMBER, documentDetailRequest.DocumentNumber, DbType.String, ParameterDirection.Input);
-                parameters.Add(DBConstants.UserIdentificationData.DOCUMENT_TYPE, documentDetailRequest.DocumentType, DbType.String, ParameterDirection.Input);
 
                 documentValidateResponse = await _documentValidationResponseRepository.GetAsync(DBConstants.DocumentValidationResponse.DOCUMENT_VALIDATION_SP, parameters);
                 
