@@ -23,6 +23,7 @@ builder.Services.AddScoped<IRecognitionLogService, RecognitionLogService>();
 builder.Services.AddTransient<IUserIdentificationDataRepository, UserIdentificationDataRepository>();
 builder.Services.AddTransient<IRecognitionLogRepository, RecognitionLogRepository>();
 builder.Services.AddTransient<IUserIdentificationTypeRepository, UserIdentificationTypeRepository>();
+builder.Services.AddTransient<IDocumentValidationResponseRepository, DocumentValidationResponseRepository>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

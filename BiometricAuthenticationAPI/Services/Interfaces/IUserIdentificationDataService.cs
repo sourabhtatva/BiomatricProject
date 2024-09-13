@@ -10,6 +10,6 @@ namespace BiometricAuthenticationAPI.Services.Interfaces
         Task<int?> InsertUserIdentificationData(UserIdentificationData userIdentificationData);
         Task<int?> UpdateUserIdentificationData(int Id, UserIdentificationData userIdentificationData);
         Task<int?> DeleteUserIdentificationData(int Id);
-        Task<DocumentValidateResponse> ValidateUserIdentificationData(DocumentDetailRequest documentDetailRequest);
+        Task<DocumentValidateResponse?> ValidateUserIdentificationData(DocumentDetailRequest documentDetailRequest);
     }
 }

@@ -58,6 +58,8 @@ namespace BiometricAuthenticationAPI.Services
 
                 int userId = Convert.ToInt32(_memoryCacheService.GetData("UserId"));
 
+                _memoryCacheService.RemoveData("UserId");
+
                 RecognitionLog recognitionLog = new()
                 {
                     ConfidenceLevel = response.Confidence,
