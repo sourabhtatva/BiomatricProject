@@ -1,6 +1,8 @@
 ﻿using CheckInKiosk.Utils.Services;
 using System;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Threading;
 
 namespace CheckInKiosk
@@ -8,10 +10,9 @@ namespace CheckInKiosk
     public partial class MainWindow : Window
     {
         private readonly HttpClientService _httpClientService;
-        private DispatcherTimer _timeoutTimer;
-        private DispatcherTimer _countdownTimer;  // Timer for updating countdown text
-        private TimeSpan _timeoutDuration = TimeSpan.FromMinutes(2); // Set the timeout duration (5 minutes)
-        private TimeSpan _remainingTime; // To track the remaining time
+        private DispatcherTimer _inactivityTimer;
+        private TimeSpan _inactivityDuration = TimeSpan.FromSeconds(15); // Set to 15 seconds
+        private TimeSpan _remainingTime;
 
         public MainWindow()
         {
@@ -27,51 +28,47 @@ namespace CheckInKiosk
             scanDocument.OnScanSuccess += ShowTakePhoto;
             scanDocument.OnRetry += ShowRetryScan;
 
-            // Initialize the timers
-            InitializeTimeoutTimer();
+            // Initialize the inactivity timer
+            InitializeInactivityTimer();
+
+            // Register event handlers for user actions
+            this.MouseMove += UserActivityDetected;
+            this.KeyDown += UserActivityDetected;
+            this.MouseDown += UserActivityDetected;
         }
 
-        private void InitializeTimeoutTimer()
+        private void InitializeInactivityTimer()
         {
-            // Timeout timer (fires once after timeout duration)
-            _timeoutTimer = new DispatcherTimer();
-            _timeoutTimer.Interval = _timeoutDuration;
-            _timeoutTimer.Tick += OnTimeout;
-
-            // Countdown timer (updates every second)
-            _countdownTimer = new DispatcherTimer();
-            _countdownTimer.Interval = TimeSpan.FromSeconds(1);
-            _countdownTimer.Tick += UpdateCountdown;
+            _inactivityTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(1)
+            };
+            _inactivityTimer.Tick += OnInactivityTimerTick;
         }
 
-        private void ResetTimeoutTimer()
+        private void ResetInactivityTimer()
         {
-            _timeoutTimer.Stop();
-            _countdownTimer.Stop();
-
-            _remainingTime = _timeoutDuration; // Reset the remaining time
-
-            _timeoutTimer.Start();
-            _countdownTimer.Start();
+            _remainingTime = _inactivityDuration;
+            CountdownTimerText.Text = _remainingTime.ToString(@"ss");
+            _inactivityTimer.Stop();
+            _inactivityTimer.Start();
         }
 
-        private void OnTimeout(object sender, EventArgs e)
-        {
-            _timeoutTimer.Stop();
-            _countdownTimer.Stop();
-            RedirectToMainScreen();
-        }
-
-        private void UpdateCountdown(object sender, EventArgs e)
+        private void OnInactivityTimerTick(object sender, EventArgs e)
         {
             _remainingTime = _remainingTime.Subtract(TimeSpan.FromSeconds(1));
-            CountdownTimerText.Text = _remainingTime.ToString(@"mm\:ss"); // Display minutes and seconds
+            CountdownTimerText.Text = _remainingTime.ToString(@"ss");
 
             if (_remainingTime <= TimeSpan.Zero)
             {
-                // Stop the countdown if time runs out (this is just a safeguard)
-                _countdownTimer.Stop();
+                _inactivityTimer.Stop();
+                RedirectToMainScreen();
             }
+        }
+
+        private void UserActivityDetected(object sender, EventArgs e)
+        {
+            ResetInactivityTimer();
         }
 
         private void RedirectToMainScreen()
@@ -81,22 +78,20 @@ namespace CheckInKiosk
             takePhoto.Visibility = Visibility.Collapsed;
 
             StopTakePhotoCamera();
-
-            // Reset the countdown display
-            CountdownTimerText.Text = string.Empty;
+            CountdownTimerText.Text = string.Empty; // Clear the countdown display
         }
 
         private void HandleConsentYes()
         {
             biometricAppPopup.Visibility = Visibility.Collapsed;
             scanDocument.Visibility = Visibility.Visible;
-            ResetTimeoutTimer();
+            ResetInactivityTimer();
         }
 
         private void HandleConsentNo()
         {
             ManualCheckInMessage.Visibility = Visibility.Visible;
-            ResetTimeoutTimer();
+            ResetInactivityTimer();
         }
 
         private void ShowTakePhoto()
@@ -104,24 +99,25 @@ namespace CheckInKiosk
             scanDocument.Visibility = Visibility.Collapsed;
             takePhoto.Visibility = Visibility.Visible;
             StartTakePhotoCamera();
-            ResetTimeoutTimer();
+            ResetInactivityTimer();
         }
 
         private void ShowRetryScan()
         {
-            ResetTimeoutTimer();
+            ResetInactivityTimer();
         }
 
         private void StartTakePhotoCamera()
         {
             takePhoto?.StartCamera();
-            ResetTimeoutTimer();
+            ResetInactivityTimer();
         }
 
         private void StopTakePhotoCamera()
         {
             takePhoto?.StopCamera();
         }
+
         public void RestartApplication()
         {
             // Close the application
@@ -131,6 +127,5 @@ namespace CheckInKiosk
             System.Diagnostics.Process.Start(System.AppDomain.CurrentDomain.FriendlyName);
             Environment.Exit(0); // Ensure the current instance is exited
         }
-
     }
 }
