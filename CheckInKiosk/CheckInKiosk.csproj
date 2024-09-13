@@ -13,12 +13,12 @@
     <None Remove="Data\eng.traineddata" />
     <None Remove="Utils\Resources\Images\bm2.png" />
     <None Remove="Utils\Resources\Images\FaceRecLogo.png" />
+    <None Remove="Utils\Resources\Images\Id.png" />
+    <None Remove="Utils\Resources\Images\passport.png" />
     <None Remove="Utils\Resources\Images\pngegg.png" />
     <None Remove="Utils\Resources\Images\scanner.gif" />
-	  <None Remove="Utils\Resources\Images\scanner2.gif" />
-	  <None Remove="Utils\Resources\Images\passport.png" />
-	  <None Remove="Utils\Resources\Images\Id.png" />
-
+    <None Remove="Utils\Resources\Images\scanner2.gif" />
+    <None Remove="Utils\Resources\Images\scanner3.gif" />
   </ItemGroup>
 
   <ItemGroup>
@@ -61,10 +61,15 @@
   <ItemGroup>
     <Resource Include="Utils\Resources\Images\bm2.png" />
     <Resource Include="Utils\Resources\Images\FaceRecLogo.png" />
+    <Resource Include="Utils\Resources\Images\Id.png" />
+    <Resource Include="Utils\Resources\Images\passport.png" />
     <Resource Include="Utils\Resources\Images\pngegg.png">
+		
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Utils\Resources\Images\scanner.gif" />
+    <Resource Include="Utils\Resources\Images\scanner2.gif" />
+    <Resource Include="Utils\Resources\Images\scanner3.gif" />
   </ItemGroup>
 
 </Project>

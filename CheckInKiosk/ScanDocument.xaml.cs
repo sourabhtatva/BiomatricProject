@@ -62,6 +62,7 @@ namespace CheckInKiosk
             }
             catch (Exception ex)
             {
+                ManualCheckInPanel.Visibility = Visibility.Visible;
                 ShowErrorMessage($"Error selecting passport: {ex.Message}");
             }
         }
@@ -75,6 +76,7 @@ namespace CheckInKiosk
             }
             catch (Exception ex)
             {
+                ManualCheckInPanel.Visibility = Visibility.Visible;
                 ShowErrorMessage($"Error selecting ID card: {ex.Message}");
             }
         }
@@ -96,6 +98,7 @@ namespace CheckInKiosk
             }
             catch (Exception ex)
             {
+                ManualCheckInPanel.Visibility = Visibility.Visible;
                 ShowErrorMessage($"Error processing document type: {ex.Message}");
             }
         }
@@ -172,31 +175,37 @@ namespace CheckInKiosk
                 catch (OperationCanceledException)
                 {
                     HideLoadingOverlay();
+                    ManualCheckInPanel.Visibility = Visibility.Visible;
                     ShowErrorMessage("The request timed out. Please try again later.");
                 }
                 catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.RequestTimeout)
                 {
                     HideLoadingOverlay();
+                    ManualCheckInPanel.Visibility = Visibility.Visible;
                     ShowErrorMessage("Request to server timed out. Please try again.");
                 }
                 catch (HttpRequestException ex)
                 {
                     HideLoadingOverlay();
+                    ManualCheckInPanel.Visibility = Visibility.Visible;
                     ShowErrorMessage("Network error occurred during document verification.");
                 }
                 catch (JsonException ex)
                 {
                     HideLoadingOverlay();
+                    ManualCheckInPanel.Visibility = Visibility.Visible;
                     ShowErrorMessage("Error parsing server response.");
                 }
                 catch (Exception ex)
                 {
                     HideLoadingOverlay();
+                    ManualCheckInPanel.Visibility = Visibility.Visible;
                     ShowErrorMessage($"An unexpected error occurred: {ex.Message}");
                 }
             }
             catch (Exception ex)
             {
+                ManualCheckInPanel.Visibility = Visibility.Visible;
                 ShowErrorMessage($"Unexpected error: {ex.Message}");
             }
         }
@@ -232,6 +241,7 @@ namespace CheckInKiosk
                     var scanner = dialog.ShowSelectDevice(WiaDeviceType.ScannerDeviceType, false, false);
                     if (scanner == null)
                     {
+                        ManualCheckInPanel.Visibility = Visibility.Visible;
                         throw new InvalidOperationException("No scanner device found.");
                     }
 
@@ -271,17 +281,20 @@ namespace CheckInKiosk
                 }
                 catch (InvalidOperationException ex)
                 {
+                    ManualCheckInPanel.Visibility = Visibility.Visible;
                     LoadingOverlay.Visibility = Visibility.Collapsed;
                     ShowErrorMessage(ex.Message);
                 }
                 catch (Exception ex)
                 {
+                    ManualCheckInPanel.Visibility = Visibility.Visible;
                     LoadingOverlay.Visibility = Visibility.Collapsed;
                     ShowErrorMessage($"Unexpected error during scanning: {ex.Message}");
                 }
             }
             catch (Exception ex)
             {
+                ManualCheckInPanel.Visibility = Visibility.Visible;
                 ShowErrorMessage($"Unexpected error: {ex.Message}");
             }
         }
@@ -298,6 +311,7 @@ namespace CheckInKiosk
             }
             catch (Exception ex)
             {
+                ManualCheckInPanel.Visibility = Visibility.Visible;
                 ShowErrorMessage($"Error restarting application: {ex.Message}");
             }
         }
@@ -315,6 +329,7 @@ namespace CheckInKiosk
             }
             catch (Exception ex)
             {
+                ManualCheckInPanel.Visibility = Visibility.Visible;
                 ShowErrorMessage($"Error converting bitmap to base64 string: {ex.Message}");
                 return string.Empty;
             }
@@ -339,6 +354,7 @@ namespace CheckInKiosk
             }
             catch (Exception ex)
             {
+                ManualCheckInPanel.Visibility = Visibility.Visible;
                 ShowErrorMessage($"Error initializing loader animation: {ex.Message}");
             }
         }
@@ -352,6 +368,7 @@ namespace CheckInKiosk
             }
             catch (Exception ex)
             {
+                ManualCheckInPanel.Visibility = Visibility.Visible;
                 ShowErrorMessage($"Error showing loading overlay: {ex.Message}");
             }
         }
@@ -365,6 +382,7 @@ namespace CheckInKiosk
             }
             catch (Exception ex)
             {
+                ManualCheckInPanel.Visibility = Visibility.Visible;
                 ShowErrorMessage($"Error hiding loading overlay: {ex.Message}");
             }
         }
@@ -398,6 +416,7 @@ namespace CheckInKiosk
             }
             catch (Exception ex)
             {
+                ManualCheckInPanel.Visibility = Visibility.Visible;
                 LoadingOverlay.Visibility = Visibility.Collapsed;
                 VerificationMessage.Text = UIMessages.DocumentVerification.DocVerificationErrorMessage(ex.Message);
                 return string.Empty;
@@ -421,6 +440,7 @@ namespace CheckInKiosk
             }
             catch (Exception ex)
             {
+                ManualCheckInPanel.Visibility = Visibility.Visible;
                 ShowErrorMessage($"Error parsing passport details: {ex.Message}");
                 return string.Empty;
             }

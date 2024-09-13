@@ -42,14 +42,14 @@
                        FontWeight="Bold"/>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
                 <!-- Passport Button -->
-                <Button x:Name="PassportButton" Click="OnPassportButtonClick" Width="150" Height="150" Margin="10">
+                <Button x:Name="PassportButton" Click="OnPassportButtonClick" Width="150" Height="180" Margin="10">
                     <StackPanel>
                         <Image Source="Utils/Resources/Images/passport.png" Width="100" Height="100" Margin="10"/>
                         <TextBlock Text="Passport" Foreground="White" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </Button>
                 <!-- ID Card Button -->
-                <Button x:Name="IDCardButton" Click="OnIDCardButtonClick" Width="150" Height="150" Margin="10">
+                <Button x:Name="IDCardButton" Click="OnIDCardButtonClick" Width="150" Height="180" Margin="10">
                     <StackPanel>
                         <Image Source="Utils/Resources/Images/Id.png" Width="100" Height="100" Margin="10"/>
                         <TextBlock Text="ID Card" Foreground="White" HorizontalAlignment="Center"/>
@@ -69,7 +69,7 @@
             <!-- Additional Info TextBox with Placeholder -->
             <Grid Margin="10">
                 <!--<Image Source="Utils\Resources\Images\scanner.gif" x:Name="ScannerImage" Width="100" Height="100" Margin="0,0,0,20" HorizontalAlignment="Center" Visibility="Collapsed"/>-->
-                <Image gif:ImageBehavior.AnimatedSource="Utils/Resources/Images/scanner2.gif" x:Name="ScannerImage" Width="100" Height="100" Margin="0,0,0,20" HorizontalAlignment="Center" Visibility="Collapsed"/>
+                <Image gif:ImageBehavior.AnimatedSource="Utils/Resources/Images/scanner3.gif" x:Name="ScannerImage" Width="100" Height="100" Margin="0,0,0,20" HorizontalAlignment="Center" Visibility="Collapsed"/>
                 <!--<TextBox x:Name="AdditionalInfoTextBox" 
                           Width="300" 
                           FontSize="18"
