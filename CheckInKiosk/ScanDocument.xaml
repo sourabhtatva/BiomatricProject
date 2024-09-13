@@ -8,26 +8,6 @@
              d:DesignHeight="450" d:DesignWidth="800" Background="#121212">
     <UserControl.Resources>
         <!-- Define Styles -->
-        <Style TargetType="ComboBox">
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="Background" Value="#1E1E1E"/>
-            <Setter Property="BorderBrush" Value="#333"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="5"/>
-            <Setter Property="Margin" Value="10"/>
-            <Setter Property="FontSize" Value="16"/>
-        </Style>
-
-        <Style TargetType="TextBox">
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="Background" Value="#1E1E1E"/>
-            <Setter Property="BorderBrush" Value="#333"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="5"/>
-            <Setter Property="Margin" Value="10"/>
-            <Setter Property="FontSize" Value="16"/>
-        </Style>
-
         <Style TargetType="Button">
             <Setter Property="Background" Value="#1E90FF"/>
             <Setter Property="Foreground" Value="White"/>
@@ -52,52 +32,39 @@
             <!-- PNG Image -->
             <Image Source="Utils\Resources\Images\pngegg.png" Width="100" Height="100" Margin="0,0,0,20" HorizontalAlignment="Center"/>
 
-
-            <!-- Document Type ComboBox and Error Message -->
-            <StackPanel Margin="10">
-                <TextBlock Text="Please Select Document Type" 
-            Foreground="White" 
-            FontSize="24" 
-            HorizontalAlignment="Center" 
-            VerticalAlignment="Center" 
-            Margin="10" 
-            FontWeight="Bold"/>
-                <ComboBox x:Name="DocumentTypeComboBox"
-          Width="300"
-          FontSize="18"
-          FontWeight="Bold"
-          Background="White"
-          Foreground="Black"
-          HorizontalContentAlignment="Center"
-          VerticalContentAlignment="Center"
-          SelectionChanged="OnDocumentTypeSelectionChanged">
-                    <ComboBox.Resources>
-                        <Style TargetType="ComboBox">
-                            <Style.Triggers>
-                                <!-- Trigger to show the placeholder when no item is selected -->
-                                <Trigger Property="SelectedIndex" Value="-1">
-                                    <Setter Property="Foreground" Value="Gray"/>
-                                    <Setter Property="Text" Value="Please Select Document Type"/>
-                                </Trigger>
-                                <!-- Trigger to reset text color when an item is selected -->
-                                <Trigger Property="SelectedIndex" Value="0">
-                                    <Setter Property="Foreground" Value="Black"/>
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
-                    </ComboBox.Resources>
-
-                    <ComboBoxItem Content="Passport"/>
-                    <ComboBoxItem Content="Vietnam ID"/>
-                </ComboBox>
-                <TextBlock x:Name="DocumentTypeErrorTextBlock" 
-                           Text="Please select a document type." 
-                           Foreground="Red" 
-                           FontSize="16" 
-                           HorizontalAlignment="Center"
-                           Visibility="Collapsed"
-                           Margin="0,5,0,0"/>
+            <!-- Document Type Selection -->
+            <TextBlock Text="Select Document Type" 
+                       Foreground="White" 
+                       FontSize="24" 
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center" 
+                       Margin="10" 
+                       FontWeight="Bold"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
+                <!-- Passport Button -->
+                <Button x:Name="PassportButton" Click="OnPassportButtonClick" Width="150" Height="150" Margin="10">
+                    <StackPanel>
+                        <Image Source="Utils/Resources/Images/bm2.png" Width="100" Height="100" Margin="10"/>
+                        <TextBlock Text="Passport" Foreground="White" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <!-- ID Card Button -->
+                <Button x:Name="IDCardButton" Click="OnIDCardButtonClick" Width="150" Height="150" Margin="10">
+                    <StackPanel>
+                        <Image Source="Utils/Resources/Images/bm2.png" Width="100" Height="100" Margin="10"/>
+                        <TextBlock Text="ID Card" Foreground="White" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
             </StackPanel>
+
+            <!-- Error Message -->
+            <TextBlock x:Name="DocumentTypeErrorTextBlock" 
+                       Text="Please select a document type." 
+                       Foreground="Red" 
+                       FontSize="16" 
+                       HorizontalAlignment="Center"
+                       Visibility="Collapsed"
+                       Margin="0,5,0,0"/>
 
             <!-- Additional Info TextBox with Placeholder -->
             <Grid Margin="10">
@@ -211,7 +178,24 @@
         <!-- Loading Indicator, shown during API call -->
         <Grid x:Name="LoadingOverlay" Style="{StaticResource LoadingOverlayStyle}">
             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                <ProgressBar IsIndeterminate="True" Height="50" Width="50" />
+                <!-- Circular Loader -->
+                <Grid Width="100" Height="100">
+                    <!-- Outer Ring -->
+                    <Ellipse Width="100" Height="100" Stroke="White" StrokeThickness="8" StrokeDashArray="1,1">
+                        <Ellipse.RenderTransform>
+                            <RotateTransform x:Name="RotateTransform" CenterX="50" CenterY="50"/>
+                        </Ellipse.RenderTransform>
+                    </Ellipse>
+
+                    <!-- Inner Ring -->
+                    <Ellipse Width="80" Height="80" Stroke="Transparent" StrokeThickness="8" Margin="10" StrokeDashArray="1,2">
+                        <Ellipse.RenderTransform>
+                            <RotateTransform CenterX="40" CenterY="40"/>
+                        </Ellipse.RenderTransform>
+                    </Ellipse>
+                </Grid>
+
+                <!-- Verifying Text -->
                 <TextBlock Text="Verifying..." Foreground="White" FontSize="18" Margin="10" HorizontalAlignment="Center"/>
             </StackPanel>
         </Grid>

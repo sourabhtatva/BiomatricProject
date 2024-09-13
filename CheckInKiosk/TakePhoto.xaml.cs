@@ -6,15 +6,20 @@ using CheckInKiosk.Utils.Resources.ApplicationData;
 using CheckInKiosk.Utils.Services;
 using Emgu.CV;
 using Emgu.CV.Structure;
+using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Net.Http;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using System.Windows.Media;
 
 namespace CheckInKiosk
 {
@@ -28,16 +33,26 @@ namespace CheckInKiosk
         private bool faceDetected = false;
         private CascadeClassifier faceCascade;
         private HttpClientService _httpClientService;
+        private Storyboard _loadingStoryboard;
 
         public TakePhoto()
         {
             InitializeComponent();
-            faceCascade = new CascadeClassifier(UIConstants.Haarcascade_Frontalface_Path);
+            InitializeLoaderAnimation();
+
+            try
+            {
+                faceCascade = new CascadeClassifier(UIConstants.Haarcascade_Frontalface_Path);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(UIMessages.FaceVerification.FaceCascadeErrorMessage);
+                return; // Exit if the face cascade is not properly loaded
+            }
 
             // Initialize the timer
             captureTimer = new DispatcherTimer();
-            // Set delay for 3 seconds
-            captureTimer.Interval = TimeSpan.FromSeconds(3); 
+            captureTimer.Interval = TimeSpan.FromSeconds(3);
             captureTimer.Tick += CaptureTimer_Tick;
 
             // Initialize CancellationTokenSource
@@ -46,13 +61,13 @@ namespace CheckInKiosk
 
         public TakePhoto(HttpClientService httpClientService) : this()
         {
-            _httpClientService = httpClientService;
+            _httpClientService = httpClientService ?? throw new ArgumentNullException(nameof(httpClientService));
         }
 
         // Method to set the HttpClientService after instantiation
         public void SetHttpClientService(HttpClientService httpClientService)
         {
-            _httpClientService = httpClientService;
+            _httpClientService = httpClientService ?? throw new ArgumentNullException(nameof(httpClientService));
         }
 
         private void CaptureTimer_Tick(object sender, EventArgs e)
@@ -88,36 +103,30 @@ namespace CheckInKiosk
 
         public void StopCamera()
         {
-            if (videoSource != null)
+            try
             {
-                try
+                if (videoSource != null && videoSource.IsRunning)
                 {
-                    if (videoSource.IsRunning)
-                    {
-                        videoSource.SignalToStop();
-                        videoSource.WaitForStop();
-                        videoSource.NewFrame -= OnNewFrame;
-                    }
-                }
-                catch
-                {
-                    // Handle any exception silently
-                }
-                finally
-                {
-                    videoSource = null;
+                    videoSource.SignalToStop();
+                    videoSource.WaitForStop();
+                    videoSource.NewFrame -= OnNewFrame;
                 }
             }
-
-            // Ensure the timer is stopped
-            captureTimer.Stop();
+            catch (Exception ex)
+            {
+                MessageBox.Show(UIMessages.FaceVerification.CameraStopErrorMessage);
+            }
+            finally
+            {
+                videoSource = null;
+                captureTimer.Stop();
+            }
         }
 
         private void OnNewFrame(object sender, NewFrameEventArgs eventArgs)
         {
             try
             {
-                // Check if the operation is canceled or the video source is not running
                 if (videoSource == null || !videoSource.IsRunning || cts?.Token.IsCancellationRequested == true)
                 {
                     return;
@@ -132,7 +141,7 @@ namespace CheckInKiosk
 
                     foreach (var face in faces)
                     {
-                        imageFrame.Draw(face, new Bgr(Color.Red), 2);
+                        imageFrame.Draw(face, new Bgr(System.Drawing.Color.Red), 2);
                     }
 
                     WebcamFeed.Dispatcher.Invoke(() =>
@@ -140,111 +149,121 @@ namespace CheckInKiosk
                         WebcamFeed.Source = BitmapToImageSource(imageFrame.ToBitmap());
                     });
 
-                    if (faces.Length > 0)
+                    if (faces.Length > 0 && !faceDetected)
                     {
-                        if (!faceDetected)
-                        {
-                            faceDetected = true;
-                            captureTimer.Start(); // Start the timer when a face is detected
-                        }
+                        faceDetected = true;
+                        captureTimer.Start(); // Start the timer when a face is detected
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // Handle any exception silently to avoid interfering with application shutdown
+                // Log or show the error to the user without crashing the app
+                MessageBox.Show(UIMessages.FaceVerification.NewFrameProcessingErrorMessage(ex.Message));
             }
         }
 
         private static BitmapSource BitmapToImageSource(Bitmap bitmap)
         {
-            using (var memoryStream = new MemoryStream())
+            try
             {
-                bitmap.Save(memoryStream, ImageFormat.Bmp);
-                memoryStream.Seek(0, SeekOrigin.Begin);
-                BitmapImage bitmapImage = new BitmapImage();
-                bitmapImage.BeginInit();
-                bitmapImage.StreamSource = memoryStream;
-                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-                bitmapImage.EndInit();
-                return bitmapImage;
+                using (var memoryStream = new MemoryStream())
+                {
+                    bitmap.Save(memoryStream, ImageFormat.Bmp);
+                    memoryStream.Seek(0, SeekOrigin.Begin);
+                    BitmapImage bitmapImage = new BitmapImage();
+                    bitmapImage.BeginInit();
+                    bitmapImage.StreamSource = memoryStream;
+                    bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmapImage.EndInit();
+                    return bitmapImage;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(UIMessages.FaceVerification.BitmapConversionErrorMessage(ex.Message));
+                return null;
             }
         }
 
         private void CaptureAndVerify()
         {
-            // Hide the WebcamFeed and other UI elements
-            WebcamFeed.Visibility = Visibility.Collapsed;
-
-            // Show Verification Message and Loading Indicator
-            VerificationMessage.Text = UIMessages.FaceVerification.IdentityVerificationInProgressMessage;
-            VerificationMessage.Visibility = Visibility.Visible;
-            LoadingOverlay.Visibility = Visibility.Visible;
-            CapturePhotoTitle.Visibility = Visibility.Collapsed;
-            MainContent.Visibility = Visibility.Collapsed;
+            try
+            {
+                WebcamFeed.Visibility = Visibility.Collapsed;
+                ShowLoadingOverlay();
+                VerificationMessage.Text = UIMessages.FaceVerification.IdentityVerificationInProgressMessage;
+                VerificationMessage.Visibility = Visibility.Visible;
+                CapturePhotoTitle.Visibility = Visibility.Collapsed;
+                MainContent.Visibility = Visibility.Collapsed;
 
             byte[] scannedImageData = Convert.FromBase64String(ApplicationData.DocumentScannedImage);
             byte[] encryptedScannedImageData = Encryptor.EncryptByteArray(scannedImageData);
             string documentScannedImageBase64String = Convert.ToBase64String(encryptedScannedImageData);
 
-            string clickedImageDataBase64String = BitmapToBase64String(capturedImage);
+                if (capturedImage == null)
+                {
+                    MessageBox.Show(UIMessages.FaceVerification.CameraStartErrorMessage("Camera failed to capture an image."));
+                }
 
-            byte[] clickedImageData = Convert.FromBase64String(clickedImageDataBase64String);
-            byte[] encryptedImageData = Encryptor.EncryptByteArray(clickedImageData);
-            string encryptedImageBase64String = Convert.ToBase64String(encryptedImageData);
+                string clickedImageDataBase64String = BitmapToBase64String(capturedImage);
 
-            // Cancel any previous ongoing task
-            cts?.Cancel();
-            cts = new CancellationTokenSource();
-            var token = cts.Token;
+                byte[] clickedImageData = Convert.FromBase64String(clickedImageDataBase64String);
+                byte[] encryptedImageData = Encryptor.EncryptByteArray(clickedImageData);
+                string encryptedImageBase64String = Convert.ToBase64String(encryptedImageData);
 
-            Task.Run(async () =>
+                cts?.Cancel(); // Cancel any previous task
+                cts = new CancellationTokenSource();
+                var token = cts.Token;
+
+                Task.Run(async () =>
+                {
+                    try
+                    {
+                        var verifyImageResponse = await VerifyImageAsync(encryptedImageBase64String, documentScannedImageBase64String);
+
+                        Dispatcher.Invoke(() =>
+                        {
+                            HideLoadingOverlay();
+                            VerificationMessage.Visibility = Visibility.Collapsed;
+
+                            if (verifyImageResponse.IsIdentical)
+                            {
+                                CheckInComplete.Visibility = Visibility.Visible;
+                            }
+                            else if (verifyImageResponse.ApiFailedStatus)
+                            {
+                                ApiFailedCase.Visibility = Visibility.Visible;
+                            }
+                            else
+                            {
+                                ManualCheckInPanel.Visibility = Visibility.Visible;
+                            }
+                        });
+                    }
+                    catch (TaskCanceledException)
+                    {
+                        Dispatcher.Invoke(() =>
+                        {
+                            MessageBox.Show(UIMessages.FaceVerification.VerificationCancelMessage);
+                            HideLoadingOverlay();
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        Dispatcher.Invoke(() =>
+                        {
+                            MessageBox.Show(UIMessages.FaceVerification.VerificationErrorMessage(ex.Message));
+                            HideLoadingOverlay();
+                        });
+                    }
+                }, token);
+            }
+            catch (Exception ex)
             {
-                try
-                {
-                    var verifyImageResponse = await VerifyImageAsync(encryptedImageBase64String, documentScannedImageBase64String);
-
-                    Dispatcher.Invoke(() =>
-                    {
-                        if (verifyImageResponse.IsIdentical)
-                        {
-                            VerificationMessage.Visibility = Visibility.Collapsed;
-                            LoadingOverlay.Visibility = Visibility.Collapsed;
-                            CheckInComplete.Visibility = Visibility.Visible;
-                        }
-                        else if(verifyImageResponse.ApiFailedStatus)
-                        {
-                            VerificationMessage.Visibility = Visibility.Collapsed;
-                            LoadingOverlay.Visibility = Visibility.Collapsed;
-                            CheckInComplete.Visibility = Visibility.Collapsed;
-                            ApiFailedCase.Visibility = Visibility.Visible;
-                        }
-                        else
-                        {
-                            VerificationMessage.Visibility = Visibility.Collapsed;
-                            LoadingOverlay.Visibility = Visibility.Collapsed;
-                            CheckInComplete.Visibility = Visibility.Collapsed;
-                            ManualCheckInPanel.Visibility = Visibility.Visible;
-                        }
-                    });
-                }
-                catch (TaskCanceledException)
-                {
-                    Dispatcher.Invoke(() =>
-                    {
-                        MessageBox.Show(UIMessages.FaceVerification.VerificationCancelMessage);
-                        LoadingOverlay.Visibility = Visibility.Collapsed;
-                    });
-                }
-                catch (Exception ex)
-                {
-                    Dispatcher.Invoke(() =>
-                    {
-                        MessageBox.Show(UIMessages.FaceVerification.VerificationErrorMessage(ex.Message));
-                        LoadingOverlay.Visibility = Visibility.Collapsed;
-                    });
-                }
-            }, token); // Pass the cancellation token here
+                MessageBox.Show(UIMessages.FaceVerification.CaptureVerifyErrorMessage(ex.Message));
+                HideLoadingOverlay();
+            }
         }
 
         private async Task<FaceVerifyResponseUI> VerifyImageAsync(string clickImage, string scanImage)
@@ -265,10 +284,8 @@ namespace CheckInKiosk
                     UIConstants.CONTENT_TYPE
                 );
 
-                // Use the custom HttpClientService to send the POST request
                 var responseData = await _httpClientService.PostAsync(APIEndpoint.FACE_MATCHING_API, jsonContent);
 
-                // Parse the response data to extract the 'data' field
                 var jsonDocument = JsonDocument.Parse(responseData);
                 var data = jsonDocument.RootElement.GetProperty("data");
 
@@ -277,9 +294,7 @@ namespace CheckInKiosk
                     PropertyNameCaseInsensitive = true
                 };
 
-                response = JsonSerializer.Deserialize<FaceVerifyResponseUI>(data, options);
-
-                return response;
+                return JsonSerializer.Deserialize<FaceVerifyResponseUI>(data, options);
             }
             catch (TaskCanceledException)
             {
@@ -303,12 +318,50 @@ namespace CheckInKiosk
 
         private string BitmapToBase64String(Bitmap bitmapcapturedImage)
         {
-            using (MemoryStream ms = new MemoryStream())
+            try
             {
-                bitmapcapturedImage.Save(ms, ImageFormat.Png);
-                byte[] imageBytes = ms.ToArray();
-                return Convert.ToBase64String(imageBytes);
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    bitmapcapturedImage.Save(ms, ImageFormat.Png);
+                    byte[] imageBytes = ms.ToArray();
+                    return Convert.ToBase64String(imageBytes);
+                }
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show(UIMessages.FaceVerification.BitmapConversionErrorMessage(ex.Message));
+                return null;
+            }
+        }
+
+        private void InitializeLoaderAnimation()
+        {
+            _loadingStoryboard = new Storyboard();
+
+            var rotateAnimation = new DoubleAnimation
+            {
+                From = 0,
+                To = 360,
+                Duration = new Duration(TimeSpan.FromSeconds(1)),
+                RepeatBehavior = RepeatBehavior.Forever
+            };
+
+            Storyboard.SetTarget(rotateAnimation, RotateTransform);
+            Storyboard.SetTargetProperty(rotateAnimation, new PropertyPath(RotateTransform.AngleProperty));
+
+            _loadingStoryboard.Children.Add(rotateAnimation);
+        }
+
+        private void ShowLoadingOverlay()
+        {
+            LoadingOverlay.Visibility = Visibility.Visible;
+            _loadingStoryboard.Begin();
+        }
+
+        private void HideLoadingOverlay()
+        {
+            _loadingStoryboard.Stop();
+            LoadingOverlay.Visibility = Visibility.Collapsed;
         }
     }
 }

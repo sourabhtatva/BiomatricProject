@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using System.Windows.Controls;
 using System.Net.Http;
 using System.Text.Json;
@@ -15,6 +16,8 @@ using Microsoft.AspNetCore.Http;
 using Tesseract;
 using System.Text.RegularExpressions;
 using System.Web;
+using System.Windows.Media.Animation;
+using System.Windows.Media;
 
 namespace CheckInKiosk
 {
@@ -24,10 +27,13 @@ namespace CheckInKiosk
         public event Action OnRetry;
         private HttpClientService _httpClientService;
         private string _selectedImagePath;
+        private string _documentType;
+        private Storyboard _loadingStoryboard;
 
         public ScanDocument()
         {
             InitializeComponent();
+            InitializeLoaderAnimation();
         }
 
         // Constructor with HttpClientService for manual instantiation
@@ -36,27 +42,56 @@ namespace CheckInKiosk
             _httpClientService = httpClientService;
         }
 
-        // Method to set the HttpClientService after instantiation
         public void SetHttpClientService(HttpClientService httpClientService)
         {
             _httpClientService = httpClientService;
         }
 
-        private void OnDocumentTypeSelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void OnPassportButtonClick(object sender, RoutedEventArgs e)
         {
-            if (DocumentTypeComboBox.SelectedItem == null)
+            try
             {
-                DocumentTypeErrorTextBlock.Visibility = Visibility.Visible;
+                _documentType = "Passport";
+                OnDocumentTypeSelected();
             }
-            else
+            catch (Exception ex)
             {
-                // Show the text field when a document type is selected
-                //PlaceholderTextBlock.Visibility = Visibility.Visible;
-                //AdditionalInfoTextBox.Visibility = Visibility.Visible;
-                ImageUploadPanel.Visibility = Visibility.Visible;
-                ScannerImage.Visibility = Visibility.Visible;
-                ScanDocumentButton.Visibility = Visibility.Visible;
-                DocumentTypeErrorTextBlock.Visibility = Visibility.Collapsed;
+                ShowErrorMessage($"Error selecting passport: {ex.Message}");
+            }
+        }
+
+        private void OnIDCardButtonClick(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                _documentType = "Vietnam ID";
+                OnDocumentTypeSelected();
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error selecting ID card: {ex.Message}");
+            }
+        }
+
+        private void OnDocumentTypeSelected()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(_documentType))
+                {
+                    DocumentTypeErrorTextBlock.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    PlaceholderTextBlock.Visibility = Visibility.Visible;
+                    AdditionalInfoTextBox.Visibility = Visibility.Visible;
+                    ImageUploadPanel.Visibility = Visibility.Visible;
+                    DocumentTypeErrorTextBlock.Visibility = Visibility.Collapsed;
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error processing document type: {ex.Message}");
             }
         }
 
@@ -254,20 +289,17 @@ namespace CheckInKiosk
                     DocumentImage = encryptedScannedImageBase64String
                 };
 
-                // Serialize request object to JSON
                 var jsonContent = new StringContent(
                     JsonSerializer.Serialize(request),
                     System.Text.Encoding.UTF8,
                     UIConstants.CONTENT_TYPE
                 );
                 var responseData = await _httpClientService.PostAsync(APIEndpoint.VALIDATE_DOC_API, jsonContent);
-                // Parse the JSON response and extract the 'data' field as a boolean
                 var jsonDocument = JsonDocument.Parse(responseData);
                 var data = jsonDocument.RootElement.GetProperty("data");
                 bool isVerified = data.GetProperty("isValid").GetBoolean();
 
-                // Hide loading indicator
-                LoadingOverlay.Visibility = Visibility.Collapsed;
+                HideLoadingOverlay();
 
                 if (isVerified)
                 {
@@ -280,11 +312,20 @@ namespace CheckInKiosk
                     ManualCheckInPanel.Visibility = Visibility.Visible;
                 }
             }
+            catch (HttpRequestException ex)
+            {
+                HideLoadingOverlay();
+                ShowErrorMessage("Network error occurred during document verification.");
+            }
+            catch (JsonException ex)
+            {
+                HideLoadingOverlay();
+                ShowErrorMessage("Error parsing server response.");
+            }
             catch (Exception ex)
             {
-                // Hide loading indicator and show error message
-                LoadingOverlay.Visibility = Visibility.Collapsed;
-                VerificationMessage.Text = UIMessages.DocumentVerification.DocVerificationErrorMessage(ex.Message);
+                HideLoadingOverlay();
+                ShowErrorMessage($"An unexpected error occurred: {ex.Message}");
             }
         }
         private async void OnScanClick(object sender, RoutedEventArgs e)
@@ -368,7 +409,6 @@ namespace CheckInKiosk
 
         private void OnOkayClick(object sender, RoutedEventArgs e)
         {
-            // Notify the MainWindow to restart the application
             var mainWindow = Application.Current.MainWindow as MainWindow;
             if (mainWindow != null)
             {
@@ -384,6 +424,38 @@ namespace CheckInKiosk
                 byte[] imageBytes = ms.ToArray();
                 return Convert.ToBase64String(imageBytes);
             }
+        }
+
+        private void InitializeLoaderAnimation()
+        {
+            _loadingStoryboard = new Storyboard();
+            var rotateAnimation = new DoubleAnimation
+            {
+                From = 0,
+                To = 360,
+                Duration = new Duration(TimeSpan.FromSeconds(1)),
+                RepeatBehavior = RepeatBehavior.Forever
+            };
+            Storyboard.SetTarget(rotateAnimation, RotateTransform);
+            Storyboard.SetTargetProperty(rotateAnimation, new PropertyPath(RotateTransform.AngleProperty));
+            _loadingStoryboard.Children.Add(rotateAnimation);
+        }
+
+        private void ShowLoadingOverlay()
+        {
+            LoadingOverlay.Visibility = Visibility.Visible;
+            _loadingStoryboard.Begin();
+        }
+
+        private void HideLoadingOverlay()
+        {
+            LoadingOverlay.Visibility = Visibility.Collapsed;
+            _loadingStoryboard.Stop();
+        }
+
+        private void ShowErrorMessage(string message)
+        {
+            MessageBox.Show(message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 }
