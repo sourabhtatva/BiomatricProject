@@ -18,6 +18,11 @@ using System.Text.RegularExpressions;
 using System.Web;
 using System.Windows.Media.Animation;
 using System.Windows.Media;
+using System.Threading.Tasks;
+using System.Net;
+using System.Windows.Shapes;
+using Point = System.Windows.Point;
+using Path = System.IO.Path;
 
 namespace CheckInKiosk
 {
@@ -29,6 +34,7 @@ namespace CheckInKiosk
         private string _selectedImagePath;
         private string _documentType;
         private Storyboard _loadingStoryboard;
+        private const int RequestTimeoutSeconds = 10;
 
         public ScanDocument()
         {
@@ -83,9 +89,8 @@ namespace CheckInKiosk
                 }
                 else
                 {
-                    PlaceholderTextBlock.Visibility = Visibility.Visible;
-                    AdditionalInfoTextBox.Visibility = Visibility.Visible;
-                    ImageUploadPanel.Visibility = Visibility.Visible;
+                    ScannerImage.Visibility = Visibility.Visible;
+                    ScanDocumentButton.Visibility = Visibility.Visible;
                     DocumentTypeErrorTextBlock.Visibility = Visibility.Collapsed;
                 }
             }
@@ -95,288 +100,153 @@ namespace CheckInKiosk
             }
         }
 
-        //private void OnAdditionalInfoTextChanged(object sender, TextChangedEventArgs e)
-        //{
-        //    if (string.IsNullOrWhiteSpace(AdditionalInfoTextBox.Text))
-        //    {
-        //        PlaceholderTextBlock.Visibility = Visibility.Visible;
-        //        AdditionalInfoErrorTextBlock.Visibility = Visibility.Visible;
-        //    }
-        //    else
-        //    {
-        //        PlaceholderTextBlock.Visibility = Visibility.Collapsed;
-        //        AdditionalInfoErrorTextBlock.Visibility = Visibility.Collapsed;
-        //    }
-        //}
-
-        //private void OnChooseImageClick(object sender, RoutedEventArgs e)
-        //{
-        //    Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog
-        //    {
-        //        Filter = UIConstants.Filter
-        //    };
-
-        //    if (openFileDialog.ShowDialog() == true)
-        //    {
-        //        _selectedImagePath = openFileDialog.FileName;
-        //        UploadedImage.Source = new BitmapImage(new Uri(_selectedImagePath));
-        //        UploadedImage.Visibility = Visibility.Visible;
-        //        ImageUploadErrorTextBlock.Visibility = Visibility.Collapsed;
-
-        //    }
-        //}
-
-
-        //private async void OnNextClick(object sender, RoutedEventArgs e)
-        //{
-        //    ScanDocumentPassport();
-        //}
-
-        //private void ScanDocumentPassport()
-        //{
-        //    try
-        //    {
-        //        var dialog = new CommonDialog();
-        //        var scanner = dialog.ShowSelectDevice(WiaDeviceType.ScannerDeviceType, false, false);
-
-        //        if (scanner != null)
-        //        {
-        //            var scanItem = scanner.Items[1];
-        //            var imageFile = (ImageFile)scanItem.Transfer(FormatID.wiaFormatPNG);
-        //            byte[] bytes = (byte[])imageFile.FileData.get_BinaryData();                   
-
-        //            // Extract text from the uploaded image using OCR
-        //            string extractedText = ExtractTextFromImage(bytes);
-
-        //            // Parse the passport details from the extracted text
-        //            string passportNumber = ParsePassportDetails(extractedText);
-
-        //            BitmapImage bitmap = new BitmapImage();
-        //            using (MemoryStream ms = new MemoryStream(bytes))
-        //            {
-        //                ms.Position = 0;
-        //                bitmap.BeginInit();
-        //                bitmap.CreateOptions = BitmapCreateOptions.PreservePixelFormat;
-        //                bitmap.CacheOption = BitmapCacheOption.OnLoad;
-        //                bitmap.StreamSource = ms;
-        //                bitmap.EndInit();
-        //                bitmap.Freeze();  // To make the BitmapImage thread-safe
-        //            }
-        //            UploadedPreviewImage.Source = bitmap;
-        //            UploadedPreviewImage.Visibility = Visibility.Visible;
-
-        //            MainStackPanel.HorizontalAlignment = HorizontalAlignment.Left;
-        //            MainStackPanel.Margin = new Thickness(50, 0, 0, 0);
-
-        //            ImagePreviewStackPanel.HorizontalAlignment = HorizontalAlignment.Right;
-        //            ImagePreviewStackPanel.Margin = new Thickness(0,0,50,0);
-        //            ImageUploadErrorTextBlock.Visibility = Visibility.Collapsed;
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        MessageBox.Show($"Error: {ex.Message}");
-        //    }
-        //}
-
-        public string ExtractTextFromImage(byte[] imageData)
+        private async void OnNextClick(object sender, RoutedEventArgs e)
         {
             try
             {
-                // Path to tessdata folder containing language data
-                string tessDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "eng.traineddata");
+                string documentScannedImage = ApplicationData.DocumentScannedImage;
+                string passportNumber = ApplicationData.PassportNumber;
+                bool hasError = false;
 
-                if (!File.Exists(tessDataPath))
+                if (string.IsNullOrEmpty(_documentType))
                 {
-                    throw new FileNotFoundException("Tesseract language file not found.");
+                    DocumentTypeErrorTextBlock.Visibility = Visibility.Visible;
+                    hasError = true;
                 }
 
-                // Initialize Tesseract OCR Engine
-                using (var ocrEngine = new TesseractEngine(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data"), "eng", EngineMode.Default))
+                if (hasError)
                 {
-                    // Load the image from file
-                    using (var img = Pix.LoadFromMemory(imageData))
+                    return; // Exit if there are validation errors
+                }
+
+                MainStackPanel.Visibility = Visibility.Collapsed;
+                ImagePreviewStackPanel.Visibility = Visibility.Collapsed;
+                LoadingOverlay.Visibility = Visibility.Visible;
+                VerificationMessage.Visibility = Visibility.Visible;
+
+                VerificationMessage.Text = UIMessages.DocumentVerification.DocVerificationInProgressMessage(_documentType);
+
+                // Ensure UI updates are applied before starting the verification process
+                await Task.Delay(500); // Delay to show the loader and message
+
+                try
+                {
+                    var request = new DocumentDetailRequestUI()
                     {
-                        // Process the image and extract text
-                        using (var page = ocrEngine.Process(img))
+                        DocumentType = Encryptor.EncryptString(_documentType),
+                        DocumentNumber = Encryptor.EncryptString(passportNumber),
+                        DocumentImage = Convert.ToBase64String(
+                            Encryptor.EncryptByteArray(
+                                Convert.FromBase64String(documentScannedImage)
+                            )
+                        )
+                    };
+
+                    var jsonContent = new StringContent(
+                        JsonSerializer.Serialize(request),
+                        System.Text.Encoding.UTF8,
+                        UIConstants.CONTENT_TYPE
+                    );
+
+                    using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(RequestTimeoutSeconds)))
+                    {
+                        var responseData = await _httpClientService.PostAsync(APIEndpoint.VALIDATE_DOC_API, jsonContent);
+                        var jsonDocument = JsonDocument.Parse(responseData);
+                        var data = jsonDocument.RootElement.GetProperty("data");
+                        bool isVerified = data.GetProperty("isValid").GetBoolean();
+
+                        HideLoadingOverlay();
+
+                        if (isVerified)
                         {
-                            return page.GetText();
+                            VerificationMessage.Text = UIMessages.DocumentVerification.DocVerificationSuccessMessage;
+                            OnScanSuccess?.Invoke();
+                        }
+                        else
+                        {
+                            VerificationMessage.Visibility = Visibility.Collapsed;
+                            ManualCheckInPanel.Visibility = Visibility.Visible;
                         }
                     }
                 }
+                catch (OperationCanceledException)
+                {
+                    HideLoadingOverlay();
+                    ShowErrorMessage("The request timed out. Please try again later.");
+                }
+                catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.RequestTimeout)
+                {
+                    HideLoadingOverlay();
+                    ShowErrorMessage("Request to server timed out. Please try again.");
+                }
+                catch (HttpRequestException ex)
+                {
+                    HideLoadingOverlay();
+                    ShowErrorMessage("Network error occurred during document verification.");
+                }
+                catch (JsonException ex)
+                {
+                    HideLoadingOverlay();
+                    ShowErrorMessage("Error parsing server response.");
+                }
+                catch (Exception ex)
+                {
+                    HideLoadingOverlay();
+                    ShowErrorMessage($"An unexpected error occurred: {ex.Message}");
+                }
             }
             catch (Exception ex)
             {
-                // Log or display the error                
-                LoadingOverlay.Visibility = Visibility.Collapsed;
-                VerificationMessage.Text = UIMessages.DocumentVerification.DocVerificationErrorMessage(ex.Message);
-                return string.Empty;
+                ShowErrorMessage($"Unexpected error: {ex.Message}");
             }
         }
 
-        public string ParsePassportDetails(string ocrText)
-        {
-            string passportNumberPattern = @"\n([A-Z]\d{7})";
-            // string veitnamIdNumberPattern = @"[0-9]{9}";
-
-
-            var passportNumberMatch = Regex.Match(ocrText, passportNumberPattern);
-            // var veitnamIdNumberMatch = Regex.Match(ocrText, veitnamIdNumberPattern);
-            string number = string.Empty;
-
-
-            if (passportNumberMatch.Success)
-            {
-                number = passportNumberMatch.Value.Replace("\n", string.Empty).Trim();
-            }
-
-            //if (veitnamIdNumberMatch.Success)
-            //{
-            //    number = veitnamIdNumberMatch.Value;
-            //}
-
-            return number;
-        }
-
-
-        private async void OnNextClick(object sender, RoutedEventArgs e)
-        {
-            // Get selected document type
-            string documentType = (DocumentTypeComboBox.SelectedItem as ComboBoxItem)?.Content.ToString() ?? string.Empty;
-            string documentScannedImage = ApplicationData.DocumentScannedImage;
-            string passportNumber = ApplicationData.PassportNumber;
-            bool hasError = false;
-
-            // Check if document type is selected
-            if (string.IsNullOrEmpty(documentType))
-            {
-                DocumentTypeErrorTextBlock.Visibility = Visibility.Visible;
-                hasError = true;
-            }            
-
-            if (hasError)
-            {
-                return; // Exit if there are validation errors
-            }
-
-            // Hide all UI elements except Loading Indicator and Verification Message
-            MainStackPanel.Visibility = Visibility.Collapsed;
-            ImagePreviewStackPanel.Visibility = Visibility.Collapsed;
-            LoadingOverlay.Visibility = Visibility.Visible;
-            VerificationMessage.Visibility = Visibility.Visible;
-
-            // Set a default message for VerificationMessage
-            VerificationMessage.Text = UIMessages.DocumentVerification.DocVerificationInProgressMessage(documentType);
-
-            // Ensure UI updates are applied before starting the verification process
-            //await Task.Delay(500); // Delay to show the loader and message
-
-            try
-            {                                             
-                // Encrypt document type and additional info
-                string encryptedDocumentType = Encryptor.EncryptString(documentType);
-                string encryptedPassportNumber = Encryptor.EncryptString(passportNumber);
-
-                byte[] clickedScannedImageData = Convert.FromBase64String(documentScannedImage);
-                byte[] encryptedScannedImageData = Encryptor.EncryptByteArray(clickedScannedImageData);
-                string encryptedScannedImageBase64String = Convert.ToBase64String(encryptedScannedImageData);
-
-
-                var request = new DocumentDetailRequestUI()
-                {
-                    DocumentType = encryptedDocumentType,
-                    DocumentNumber = encryptedPassportNumber,
-                    DocumentImage = encryptedScannedImageBase64String
-                };
-
-                var jsonContent = new StringContent(
-                    JsonSerializer.Serialize(request),
-                    System.Text.Encoding.UTF8,
-                    UIConstants.CONTENT_TYPE
-                );
-                var responseData = await _httpClientService.PostAsync(APIEndpoint.VALIDATE_DOC_API, jsonContent);
-                var jsonDocument = JsonDocument.Parse(responseData);
-                var data = jsonDocument.RootElement.GetProperty("data");
-                bool isVerified = data.GetProperty("isValid").GetBoolean();
-
-                HideLoadingOverlay();
-
-                if (isVerified)
-                {
-                    VerificationMessage.Text = UIMessages.DocumentVerification.DocVerificationSuccessMessage;
-                    OnScanSuccess?.Invoke();
-                }
-                else
-                {
-                    VerificationMessage.Visibility = Visibility.Collapsed;
-                    ManualCheckInPanel.Visibility = Visibility.Visible;
-                }
-            }
-            catch (HttpRequestException ex)
-            {
-                HideLoadingOverlay();
-                ShowErrorMessage("Network error occurred during document verification.");
-            }
-            catch (JsonException ex)
-            {
-                HideLoadingOverlay();
-                ShowErrorMessage("Error parsing server response.");
-            }
-            catch (Exception ex)
-            {
-                HideLoadingOverlay();
-                ShowErrorMessage($"An unexpected error occurred: {ex.Message}");
-            }
-        }
         private async void OnScanClick(object sender, RoutedEventArgs e)
         {
-            // Hide all UI elements except Loading Indicator and Verification Message
-            MainStackPanel.Visibility = Visibility.Collapsed;
-            LoadingOverlay.Visibility = Visibility.Visible;
-            VerificationMessage.Visibility = Visibility.Visible;
-            // Get selected document type
-            string documentType = (DocumentTypeComboBox.SelectedItem as ComboBoxItem)?.Content.ToString() ?? string.Empty;            
-
-            bool hasError = false;
-
-            // Check if document type is selected
-            if (string.IsNullOrEmpty(documentType))
-            {
-                DocumentTypeErrorTextBlock.Visibility = Visibility.Visible;
-                hasError = true;
-            }          
-
-            if (hasError)
-            {
-                return; // Exit if there are validation errors
-            }
-                      
-            // Set a default message for VerificationMessage
-            VerificationMessage.Text = UIMessages.DocumentVerification.DocVerificationInProgressMessage(documentType);
-            //await Task.Delay(500); // Delay to show the loader and message
             try
             {
-                string documentScannedImagebase64Image = string.Empty;                
+                MainStackPanel.Visibility = Visibility.Collapsed;
+                LoadingOverlay.Visibility = Visibility.Visible;
+                VerificationMessage.Visibility = Visibility.Visible;
 
-                var dialog = new CommonDialog();
-                var scanner = dialog.ShowSelectDevice(WiaDeviceType.ScannerDeviceType, false, false);
-                string passportNumber = string.Empty;
-                if (scanner != null)
+                bool hasError = false;
+
+                if (string.IsNullOrEmpty(_documentType))
                 {
+                    DocumentTypeErrorTextBlock.Visibility = Visibility.Visible;
+                    hasError = true;
+                }
+
+                if (hasError)
+                {
+                    return; // Exit if there are validation errors
+                }
+
+                VerificationMessage.Text = UIMessages.DocumentVerification.DocVerificationInProgressMessage(_documentType);
+
+                await Task.Delay(500); // Delay to show the loader and message
+
+                try
+                {
+                    var dialog = new CommonDialog();
+                    var scanner = dialog.ShowSelectDevice(WiaDeviceType.ScannerDeviceType, false, false);
+                    if (scanner == null)
+                    {
+                        throw new InvalidOperationException("No scanner device found.");
+                    }
+
                     var scanItem = scanner.Items[1];
                     var imageFile = (ImageFile)scanItem.Transfer(FormatID.wiaFormatPNG);
                     byte[] bytes = (byte[])imageFile.FileData.get_BinaryData();
+
                     using (MemoryStream ms = new MemoryStream(bytes))
                     {
                         Bitmap bitmap = new Bitmap(ms);
                         ApplicationData.DocumentScannedImage = BitmapToBase64String(bitmap);
                     }
 
-                    // Extract text from the uploaded image using OCR
                     string extractedText = ExtractTextFromImage(bytes);
-
-                    // Parse the passport details from the extracted text
-                    passportNumber = ParsePassportDetails(extractedText);
+                    string passportNumber = ParsePassportDetails(extractedText);
                     ApplicationData.PassportNumber = passportNumber;
 
                     BitmapImage bitmapImage = new BitmapImage();
@@ -390,72 +260,170 @@ namespace CheckInKiosk
                         bitmapImage.EndInit();
                         bitmapImage.Freeze();  // To make the BitmapImage thread-safe
                     }
+
                     LoadingOverlay.Visibility = Visibility.Collapsed;
                     VerificationMessage.Visibility = Visibility.Collapsed;
-                    UploadedPreviewImage.Source = bitmapImage;                    
+                    UploadedPreviewImage.Source = bitmapImage;
                     ImagePreviewStackPanel.Visibility = Visibility.Visible;
                     UploadedPreviewImage.Visibility = Visibility.Visible;
                     ImageUploadErrorTextBlock.Visibility = Visibility.Collapsed;
                     NextPreviewButton.Visibility = Visibility.Visible;
-                }                              
+                }
+                catch (InvalidOperationException ex)
+                {
+                    LoadingOverlay.Visibility = Visibility.Collapsed;
+                    ShowErrorMessage(ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    LoadingOverlay.Visibility = Visibility.Collapsed;
+                    ShowErrorMessage($"Unexpected error during scanning: {ex.Message}");
+                }
             }
             catch (Exception ex)
             {
-                // Hide loading indicator and show error message
-                LoadingOverlay.Visibility = Visibility.Collapsed;
-                VerificationMessage.Text = UIMessages.DocumentVerification.DocVerificationErrorMessage(ex.Message);
+                ShowErrorMessage($"Unexpected error: {ex.Message}");
             }
         }
 
         private void OnOkayClick(object sender, RoutedEventArgs e)
         {
-            var mainWindow = Application.Current.MainWindow as MainWindow;
-            if (mainWindow != null)
+            try
             {
-                mainWindow.RestartApplication();
+                var mainWindow = Application.Current.MainWindow as MainWindow;
+                if (mainWindow != null)
+                {
+                    mainWindow.RestartApplication();
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error restarting application: {ex.Message}");
             }
         }
 
         private string BitmapToBase64String(Bitmap bitmapcapturedImage)
         {
-            using (MemoryStream ms = new MemoryStream())
+            try
             {
-                bitmapcapturedImage.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-                byte[] imageBytes = ms.ToArray();
-                return Convert.ToBase64String(imageBytes);
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    bitmapcapturedImage.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+                    byte[] imageBytes = ms.ToArray();
+                    return Convert.ToBase64String(imageBytes);
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error converting bitmap to base64 string: {ex.Message}");
+                return string.Empty;
             }
         }
 
         private void InitializeLoaderAnimation()
         {
-            _loadingStoryboard = new Storyboard();
-            var rotateAnimation = new DoubleAnimation
+            try
             {
-                From = 0,
-                To = 360,
-                Duration = new Duration(TimeSpan.FromSeconds(1)),
-                RepeatBehavior = RepeatBehavior.Forever
-            };
-            Storyboard.SetTarget(rotateAnimation, RotateTransform);
-            Storyboard.SetTargetProperty(rotateAnimation, new PropertyPath(RotateTransform.AngleProperty));
-            _loadingStoryboard.Children.Add(rotateAnimation);
+
+                _loadingStoryboard = new Storyboard();
+                var rotateAnimation = new DoubleAnimation
+                {
+                    From = 0,
+                    To = 360,
+                    Duration = new Duration(TimeSpan.FromSeconds(1)),
+                    RepeatBehavior = RepeatBehavior.Forever
+                };
+                Storyboard.SetTarget(rotateAnimation, RotateTransform);
+                Storyboard.SetTargetProperty(rotateAnimation, new PropertyPath(RotateTransform.AngleProperty));
+                _loadingStoryboard.Children.Add(rotateAnimation);
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error initializing loader animation: {ex.Message}");
+            }
         }
 
         private void ShowLoadingOverlay()
         {
-            LoadingOverlay.Visibility = Visibility.Visible;
-            _loadingStoryboard.Begin();
+            try
+            {
+                LoadingOverlay.Visibility = Visibility.Visible;
+                _loadingStoryboard.Begin();
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error showing loading overlay: {ex.Message}");
+            }
         }
 
         private void HideLoadingOverlay()
         {
-            LoadingOverlay.Visibility = Visibility.Collapsed;
-            _loadingStoryboard.Stop();
+            try
+            {
+                LoadingOverlay.Visibility = Visibility.Collapsed;
+                _loadingStoryboard.Stop();
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error hiding loading overlay: {ex.Message}");
+            }
         }
 
         private void ShowErrorMessage(string message)
         {
             MessageBox.Show(message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+
+        public string ExtractTextFromImage(byte[] imageData)
+        {
+            try
+            {
+                string tessDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "eng.traineddata");
+
+                if (!File.Exists(tessDataPath))
+                {
+                    throw new FileNotFoundException("Tesseract language file not found.");
+                }
+
+                using (var ocrEngine = new TesseractEngine(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data"), "eng", EngineMode.Default))
+                {
+                    using (var img = Pix.LoadFromMemory(imageData))
+                    {
+                        using (var page = ocrEngine.Process(img))
+                        {
+                            return page.GetText();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LoadingOverlay.Visibility = Visibility.Collapsed;
+                VerificationMessage.Text = UIMessages.DocumentVerification.DocVerificationErrorMessage(ex.Message);
+                return string.Empty;
+            }
+        }
+
+        public string ParsePassportDetails(string ocrText)
+        {
+            try
+            {
+                string passportNumberPattern = @"\n([A-Z]\d{7})";
+                var passportNumberMatch = Regex.Match(ocrText, passportNumberPattern);
+                string number = string.Empty;
+
+                if (passportNumberMatch.Success)
+                {
+                    number = passportNumberMatch.Value.Replace("\n", string.Empty).Trim();
+                }
+
+                return number;
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error parsing passport details: {ex.Message}");
+                return string.Empty;
+            }
         }
     }
 }
