@@ -1,11 +1,18 @@
 ﻿using CheckInKiosk.Utils.Services;
+using System;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Threading;
 
 namespace CheckInKiosk
 {
     public partial class MainWindow : Window
     {
         private readonly HttpClientService _httpClientService;
+        private DispatcherTimer _inactivityTimer;
+        private TimeSpan _inactivityDuration = TimeSpan.FromSeconds(15); // Set to 15 seconds
+        private TimeSpan _remainingTime;
 
         public MainWindow()
         {
@@ -20,43 +27,97 @@ namespace CheckInKiosk
             biometricAppPopup.OnConsentNo += HandleConsentNo;
             scanDocument.OnScanSuccess += ShowTakePhoto;
             scanDocument.OnRetry += ShowRetryScan;
+
+            // Initialize the inactivity timer
+            InitializeInactivityTimer();
+
+            // Register event handlers for user actions
+            this.MouseMove += UserActivityDetected;
+            this.KeyDown += UserActivityDetected;
+            this.MouseDown += UserActivityDetected;
+        }
+
+        private void InitializeInactivityTimer()
+        {
+            _inactivityTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(1)
+            };
+            _inactivityTimer.Tick += OnInactivityTimerTick;
+        }
+
+        private void ResetInactivityTimer()
+        {
+            _remainingTime = _inactivityDuration;
+            CountdownTimerText.Text = _remainingTime.ToString(@"ss");
+            _inactivityTimer.Stop();
+            _inactivityTimer.Start();
+        }
+
+        private void OnInactivityTimerTick(object sender, EventArgs e)
+        {
+            _remainingTime = _remainingTime.Subtract(TimeSpan.FromSeconds(1));
+            CountdownTimerText.Text = _remainingTime.ToString(@"ss");
+
+            if (_remainingTime <= TimeSpan.Zero)
+            {
+                _inactivityTimer.Stop();
+                RedirectToMainScreen();
+            }
+        }
+
+        private void UserActivityDetected(object sender, EventArgs e)
+        {
+            ResetInactivityTimer();
+        }
+
+        private void RedirectToMainScreen()
+        {
+            biometricAppPopup.Visibility = Visibility.Visible;
+            scanDocument.Visibility = Visibility.Collapsed;
+            takePhoto.Visibility = Visibility.Collapsed;
+
+            StopTakePhotoCamera();
+            CountdownTimerText.Text = string.Empty; // Clear the countdown display
         }
 
         private void HandleConsentYes()
         {
-            // Proceed to the ScanDocument screen
             biometricAppPopup.Visibility = Visibility.Collapsed;
             scanDocument.Visibility = Visibility.Visible;
+            ResetInactivityTimer();
         }
 
         private void HandleConsentNo()
         {
-            // Show manual check-in message
             ManualCheckInMessage.Visibility = Visibility.Visible;
+            ResetInactivityTimer();
         }
 
         private void ShowTakePhoto()
         {
             scanDocument.Visibility = Visibility.Collapsed;
             takePhoto.Visibility = Visibility.Visible;
-
-            // Start the camera when TakePhoto is visible
             StartTakePhotoCamera();
+            ResetInactivityTimer();
         }
 
         private void ShowRetryScan()
         {
-            // Optionally handle retry scenario
+            ResetInactivityTimer();
         }
 
         private void StartTakePhotoCamera()
         {
-            // Ensure takePhoto is not null and start the camera
-            if (takePhoto != null)
-            {
-                takePhoto.StartCamera();
-            }
+            takePhoto?.StartCamera();
+            ResetInactivityTimer();
         }
+
+        private void StopTakePhotoCamera()
+        {
+            takePhoto?.StopCamera();
+        }
+
         public void RestartApplication()
         {
             // Close the application
@@ -65,15 +126,6 @@ namespace CheckInKiosk
             // Restart the application
             System.Diagnostics.Process.Start(System.AppDomain.CurrentDomain.FriendlyName);
             Environment.Exit(0); // Ensure the current instance is exited
-        }
-
-        private void StopTakePhotoCamera()
-        {
-            // Ensure takePhoto is not null and stop the camera
-            if (takePhoto != null)
-            {
-                takePhoto.StopCamera();
-            }
         }
     }
 }
