@@ -62,7 +62,7 @@ namespace BiometricAuthenticationAPI.Controllers
                     throw new DataValidationException(ModelState);
                 }
 
-                string message = string.Empty;
+                string? message = string.Empty;
                 var response = await _userIdentificationDataService.ValidateUserIdentificationData(documentDetail);
 
                 if(response != null && !response.IsValid && SystemConstants.General.Reasons.Contains(response.RejectReason))

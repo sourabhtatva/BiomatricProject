@@ -54,6 +54,6 @@ namespace BiometricAuthenticationAPI.Data.Models
         public DateTime? UpdatedAt { get; set; }
 
         [ForeignKey("UserIdType")]
-        public UserIdentificationType? UserIdentificationType { get; set; }
+        public static UserIdentificationType? UserIdentificationType { get; set; }
     }
 }
