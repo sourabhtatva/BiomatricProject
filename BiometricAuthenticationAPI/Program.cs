@@ -18,6 +18,7 @@ builder.Services.AddScoped<IAwsFaceService, AwsFaceService>();
 builder.Services.AddScoped<IUserIdentificationDataService, UserIdentificationDataService>();
 builder.Services.AddScoped<IUserIdentificationTypeService, UserIdentificationTypeService>();
 builder.Services.AddScoped<IRecognitionLogService, RecognitionLogService>();
+builder.Services.AddScoped<IVisionLabFaceService, VisionLabFaceService>();
 
 // Transient Lifetime Repositories
 builder.Services.AddTransient<IUserIdentificationDataRepository, UserIdentificationDataRepository>();
