@@ -62,7 +62,7 @@ namespace CheckInKiosk
             if (_remainingTime <= TimeSpan.Zero)
             {
                 _inactivityTimer.Stop();
-                RedirectToMainScreen();
+                RestartApplication();
             }
         }
 
