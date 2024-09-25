@@ -74,7 +74,6 @@
     <Resource Include="Utils\Resources\Images\scanner.gif" />
     <Resource Include="Utils\Resources\Images\scanner2.gif" />
     <Resource Include="Utils\Resources\Images\scanner3.gif" />
-	  <Resource Include="Utils\Resources\Images\loading-gif.gif" />
 
   </ItemGroup>
 
