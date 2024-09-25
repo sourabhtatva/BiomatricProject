@@ -39,7 +39,6 @@ namespace CheckInKiosk
         public ScanDocument()
         {
             InitializeComponent();
-            InitializeLoaderAnimation();
         }
 
         // Constructor with HttpClientService for manual instantiation
@@ -335,36 +334,11 @@ namespace CheckInKiosk
             }
         }
 
-        private void InitializeLoaderAnimation()
-        {
-            try
-            {
-
-                _loadingStoryboard = new Storyboard();
-                var rotateAnimation = new DoubleAnimation
-                {
-                    From = 0,
-                    To = 360,
-                    Duration = new Duration(TimeSpan.FromSeconds(1)),
-                    RepeatBehavior = RepeatBehavior.Forever
-                };
-                Storyboard.SetTarget(rotateAnimation, RotateTransform);
-                Storyboard.SetTargetProperty(rotateAnimation, new PropertyPath(RotateTransform.AngleProperty));
-                _loadingStoryboard.Children.Add(rotateAnimation);
-            }
-            catch (Exception ex)
-            {
-                ManualCheckInPanel.Visibility = Visibility.Visible;
-                ShowErrorMessage($"Error initializing loader animation: {ex.Message}");
-            }
-        }
-
         private void ShowLoadingOverlay()
         {
             try
             {
                 LoadingOverlay.Visibility = Visibility.Visible;
-                _loadingStoryboard.Begin();
             }
             catch (Exception ex)
             {
@@ -378,7 +352,6 @@ namespace CheckInKiosk
             try
             {
                 LoadingOverlay.Visibility = Visibility.Collapsed;
-                _loadingStoryboard.Stop();
             }
             catch (Exception ex)
             {

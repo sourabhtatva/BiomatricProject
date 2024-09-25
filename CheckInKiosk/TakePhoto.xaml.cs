@@ -38,7 +38,6 @@ namespace CheckInKiosk
         public TakePhoto()
         {
             InitializeComponent();
-            InitializeLoaderAnimation();
 
             try
             {
@@ -334,33 +333,13 @@ namespace CheckInKiosk
             }
         }
 
-        private void InitializeLoaderAnimation()
-        {
-            _loadingStoryboard = new Storyboard();
-
-            var rotateAnimation = new DoubleAnimation
-            {
-                From = 0,
-                To = 360,
-                Duration = new Duration(TimeSpan.FromSeconds(1)),
-                RepeatBehavior = RepeatBehavior.Forever
-            };
-
-            Storyboard.SetTarget(rotateAnimation, RotateTransform);
-            Storyboard.SetTargetProperty(rotateAnimation, new PropertyPath(RotateTransform.AngleProperty));
-
-            _loadingStoryboard.Children.Add(rotateAnimation);
-        }
-
         private void ShowLoadingOverlay()
         {
             LoadingOverlay.Visibility = Visibility.Visible;
-            _loadingStoryboard.Begin();
         }
 
         private void HideLoadingOverlay()
         {
-            _loadingStoryboard.Stop();
             LoadingOverlay.Visibility = Visibility.Collapsed;
         }
     }

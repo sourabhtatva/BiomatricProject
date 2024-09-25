@@ -1,5 +1,6 @@
 ﻿<UserControl x:Class="CheckInKiosk.TakePhoto"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:gif="http://wpfanimatedgif.codeplex.com"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Height="600" Width="800" Background="#121212">
     <UserControl.Resources>
@@ -59,28 +60,21 @@
         </StackPanel>
 
          <!-- Loading Indicator, shown during API call -->
- <Grid x:Name="LoadingOverlay" Style="{StaticResource LoadingOverlayStyle}">
-     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-         <!-- Circular Loader -->
-         <Grid Width="100" Height="100">
-             <!-- Outer Ring -->
-             <Ellipse Width="100" Height="100" Stroke="White" StrokeThickness="8" StrokeDashArray="1,1">
-                 <Ellipse.RenderTransform>
-                     <RotateTransform x:Name="RotateTransform" CenterX="50" CenterY="50"/>
-                 </Ellipse.RenderTransform>
-             </Ellipse>
+        <Grid x:Name="LoadingOverlay" Style="{StaticResource LoadingOverlayStyle}">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
 
-             <!-- Inner Ring -->
-             <Ellipse Width="80" Height="80" Stroke="Transparent" StrokeThickness="8" Margin="10" StrokeDashArray="1,2">
-                 <Ellipse.RenderTransform>
-                     <RotateTransform CenterX="40" CenterY="40"/>
-                 </Ellipse.RenderTransform>
-             </Ellipse>
-         </Grid>
+                <!-- GIF Loader -->
+                <Image gif:ImageBehavior.AnimatedSource="Utils\Resources\Images\loading-gif.gif"
+               x:Name="LoaderGif"
+               Width="100"
+               Height="100"
+               Margin="0,0,0,20"
+               HorizontalAlignment="Center"
+               Visibility="Visible" />
 
-         <!-- Verifying Text -->
-      <TextBlock x:Name="VerificationMessage"  Foreground="White" FontSize="18" Margin="10" HorizontalAlignment="Center"/>
-     </StackPanel>
- </Grid>
+                <!-- Verifying Text -->
+                <TextBlock x:Name="VerificationMessage"  Foreground="White" FontSize="18" Margin="10" HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </UserControl>
