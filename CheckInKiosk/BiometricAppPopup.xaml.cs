@@ -24,7 +24,6 @@ namespace CheckInKiosk
             }
             catch (Exception ex)
             {
-                // Show error popup using MessageBox
                 ShowError(ex);
             }
         }
@@ -39,7 +38,6 @@ namespace CheckInKiosk
             }
             catch (Exception ex)
             {
-                // Show error popup using MessageBox
                 ShowError(ex);
             }
         }
@@ -57,12 +55,10 @@ namespace CheckInKiosk
             }
             catch (Exception ex)
             {
-                // Show error popup using MessageBox
                 ShowError(ex);
             }
         }
 
-        // Method to show error using MessageBox
         private void ShowError(Exception ex)
         {
             MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);

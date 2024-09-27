@@ -49,7 +49,6 @@ namespace CheckInKiosk
         private void ResetInactivityTimer()
         {
             _remainingTime = _inactivityDuration;
-            CountdownTimerText.Text = _remainingTime.ToString(@"ss");
             _inactivityTimer.Stop();
             _inactivityTimer.Start();
         }
@@ -57,7 +56,6 @@ namespace CheckInKiosk
         private void OnInactivityTimerTick(object sender, EventArgs e)
         {
             _remainingTime = _remainingTime.Subtract(TimeSpan.FromSeconds(1));
-            CountdownTimerText.Text = _remainingTime.ToString(@"ss");
 
             if (_remainingTime <= TimeSpan.Zero)
             {
@@ -78,7 +76,6 @@ namespace CheckInKiosk
             takePhoto.Visibility = Visibility.Collapsed;
 
             StopTakePhotoCamera();
-            CountdownTimerText.Text = string.Empty; // Clear the countdown display
         }
 
         private void HandleConsentYes()
@@ -120,12 +117,22 @@ namespace CheckInKiosk
 
         public void RestartApplication()
         {
-            // Close the application
-            Application.Current.Shutdown();
+            StopTakePhotoCamera();
 
-            // Restart the application
-            System.Diagnostics.Process.Start(System.AppDomain.CurrentDomain.FriendlyName);
-            Environment.Exit(0); // Ensure the current instance is exited
+            string appPath = System.AppDomain.CurrentDomain.FriendlyName;
+
+            var newProcess = new System.Diagnostics.Process
+            {
+                StartInfo = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = appPath,
+                    UseShellExecute = true
+                }
+            };
+
+            Application.Current.Shutdown();
+            newProcess.Start();
+            Environment.Exit(0);
         }
     }
 }

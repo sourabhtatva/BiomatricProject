@@ -57,6 +57,8 @@ namespace CheckInKiosk
             try
             {
                 _documentType = "Passport";
+                PassportButton.Style = (Style)FindResource("HighlightButtonStyle");
+                IDCardButton.Style = (Style)FindResource("DefaultButtonStyle");
                 OnDocumentTypeSelected();
             }
             catch (Exception ex)
@@ -71,6 +73,8 @@ namespace CheckInKiosk
             try
             {
                 _documentType = "Vietnam ID";
+                IDCardButton.Style = (Style)FindResource("HighlightButtonStyle");
+                PassportButton.Style = (Style)FindResource("DefaultButtonStyle");
                 OnDocumentTypeSelected();
             }
             catch (Exception ex)
@@ -102,7 +106,7 @@ namespace CheckInKiosk
             }
         }
 
-        private async void OnNextClick(object sender, RoutedEventArgs e)
+        private async void OnNextClick()
         {
             try
             {
@@ -121,15 +125,7 @@ namespace CheckInKiosk
                     return; // Exit if there are validation errors
                 }
 
-                MainStackPanel.Visibility = Visibility.Collapsed;
-                ImagePreviewStackPanel.Visibility = Visibility.Collapsed;
-                LoadingOverlay.Visibility = Visibility.Visible;
-                VerificationMessage.Visibility = Visibility.Visible;
-
                 VerificationMessage.Text = UIMessages.DocumentVerification.DocVerificationInProgressMessage(_documentType);
-
-                // Ensure UI updates are applied before starting the verification process
-                await Task.Delay(500); // Delay to show the loader and message
 
                 try
                 {
@@ -195,12 +191,6 @@ namespace CheckInKiosk
                     ManualCheckInPanel.Visibility = Visibility.Visible;
                     ShowErrorMessage("Error parsing server response.");
                 }
-                catch (Exception ex)
-                {
-                    HideLoadingOverlay();
-                    ManualCheckInPanel.Visibility = Visibility.Visible;
-                    ShowErrorMessage($"An unexpected error occurred: {ex.Message}");
-                }
             }
             catch (Exception ex)
             {
@@ -231,8 +221,6 @@ namespace CheckInKiosk
                 }
 
                 VerificationMessage.Text = UIMessages.DocumentVerification.DocVerificationInProgressMessage(_documentType);
-
-                await Task.Delay(500); // Delay to show the loader and message
 
                 try
                 {
@@ -269,14 +257,8 @@ namespace CheckInKiosk
                         bitmapImage.EndInit();
                         bitmapImage.Freeze();  // To make the BitmapImage thread-safe
                     }
-
-                    LoadingOverlay.Visibility = Visibility.Collapsed;
-                    VerificationMessage.Visibility = Visibility.Collapsed;
-                    UploadedPreviewImage.Source = bitmapImage;
-                    ImagePreviewStackPanel.Visibility = Visibility.Visible;
-                    UploadedPreviewImage.Visibility = Visibility.Visible;
-                    ImageUploadErrorTextBlock.Visibility = Visibility.Collapsed;
-                    NextPreviewButton.Visibility = Visibility.Visible;
+                    //Calling API
+                    OnNextClick();
                 }
                 catch (InvalidOperationException ex)
                 {
@@ -305,6 +287,7 @@ namespace CheckInKiosk
                 var mainWindow = Application.Current.MainWindow as MainWindow;
                 if (mainWindow != null)
                 {
+                    mainWindow.Close();
                     mainWindow.RestartApplication();
                 }
             }
@@ -316,7 +299,7 @@ namespace CheckInKiosk
         }
 
         private string BitmapToBase64String(Bitmap bitmapcapturedImage)
-        {
+            {
             try
             {
                 using (MemoryStream ms = new MemoryStream())

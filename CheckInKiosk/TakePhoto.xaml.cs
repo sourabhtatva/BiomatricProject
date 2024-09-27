@@ -107,7 +107,6 @@ namespace CheckInKiosk
                 if (videoSource != null && videoSource.IsRunning)
                 {
                     videoSource.SignalToStop();
-                    videoSource.WaitForStop();
                     videoSource.NewFrame -= OnNewFrame;
                 }
             }
@@ -117,8 +116,14 @@ namespace CheckInKiosk
             }
             finally
             {
-                videoSource = null;
-                captureTimer.Stop();
+                if (videoSource != null)
+                {
+                    videoSource.SignalToStop();
+                    videoSource = null;
+                }
+
+                captureTimer?.Stop();
+                captureTimer = null;
             }
         }
 
@@ -189,6 +194,9 @@ namespace CheckInKiosk
         {
             try
             {
+                // Stop the camera once the image is captured
+                StopCamera();
+
                 WebcamFeed.Visibility = Visibility.Collapsed;
                 ShowLoadingOverlay();
                 VerificationMessage.Text = UIMessages.FaceVerification.IdentityVerificationInProgressMessage;
@@ -196,13 +204,14 @@ namespace CheckInKiosk
                 CapturePhotoTitle.Visibility = Visibility.Collapsed;
                 MainContent.Visibility = Visibility.Collapsed;
 
-            byte[] scannedImageData = Convert.FromBase64String(ApplicationData.DocumentScannedImage);
-            byte[] encryptedScannedImageData = Encryptor.EncryptByteArray(scannedImageData);
-            string documentScannedImageBase64String = Convert.ToBase64String(encryptedScannedImageData);
+                byte[] scannedImageData = Convert.FromBase64String(ApplicationData.DocumentScannedImage);
+                byte[] encryptedScannedImageData = Encryptor.EncryptByteArray(scannedImageData);
+                string documentScannedImageBase64String = Convert.ToBase64String(encryptedScannedImageData);
 
                 if (capturedImage == null)
                 {
                     MessageBox.Show(UIMessages.FaceVerification.CameraStartErrorMessage("Camera failed to capture an image."));
+                    return;
                 }
 
                 string clickedImageDataBase64String = BitmapToBase64String(capturedImage);
@@ -307,7 +316,6 @@ namespace CheckInKiosk
 
         private void OnOkayClick(object sender, RoutedEventArgs e)
         {
-            // Notify the MainWindow to restart the application
             var mainWindow = Application.Current.MainWindow as MainWindow;
             if (mainWindow != null)
             {
