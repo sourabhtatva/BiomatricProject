@@ -41,7 +41,6 @@ namespace CheckInKiosk
             InitializeComponent();
         }
 
-        // Constructor with HttpClientService for manual instantiation
         public ScanDocument(HttpClientService httpClientService) : this()
         {
             _httpClientService = httpClientService;
@@ -111,7 +110,7 @@ namespace CheckInKiosk
             try
             {
                 string documentScannedImage = ApplicationData.DocumentScannedImage;
-                string passportNumber = ApplicationData.PassportNumber;
+                string documentNumber = ApplicationData.DocumentNumber;
                 bool hasError = false;
 
                 if (string.IsNullOrEmpty(_documentType))
@@ -132,7 +131,7 @@ namespace CheckInKiosk
                     var request = new DocumentDetailRequestUI()
                     {
                         DocumentType = Encryptor.EncryptString(_documentType),
-                        DocumentNumber = Encryptor.EncryptString(passportNumber),
+                        DocumentNumber = Encryptor.EncryptString(documentNumber),
                         DocumentImage = Convert.ToBase64String(
                             Encryptor.EncryptByteArray(
                                 Convert.FromBase64String(documentScannedImage)
@@ -217,7 +216,7 @@ namespace CheckInKiosk
 
                 if (hasError)
                 {
-                    return; // Exit if there are validation errors
+                    return; 
                 }
 
                 VerificationMessage.Text = UIMessages.DocumentVerification.DocVerificationInProgressMessage(_documentType);
@@ -243,8 +242,8 @@ namespace CheckInKiosk
                     }
 
                     string extractedText = ExtractTextFromImage(bytes);
-                    string passportNumber = ParsePassportDetails(extractedText);
-                    ApplicationData.PassportNumber = passportNumber;
+                    string documentNumber = ParseDocumentDetails(extractedText);
+                    ApplicationData.DocumentNumber = documentNumber;
 
                     BitmapImage bitmapImage = new BitmapImage();
                     using (MemoryStream ms = new MemoryStream(bytes))
@@ -255,9 +254,8 @@ namespace CheckInKiosk
                         bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
                         bitmapImage.StreamSource = ms;
                         bitmapImage.EndInit();
-                        bitmapImage.Freeze();  // To make the BitmapImage thread-safe
+                        bitmapImage.Freeze(); 
                     }
-                    //Calling API
                     OnNextClick();
                 }
                 catch (InvalidOperationException ex)
@@ -379,17 +377,31 @@ namespace CheckInKiosk
             }
         }
 
-        public string ParsePassportDetails(string ocrText)
+        public string ParseDocumentDetails(string ocrText)
         {
             try
             {
-                string passportNumberPattern = @"\n([A-Z]\d{7})";
-                var passportNumberMatch = Regex.Match(ocrText, passportNumberPattern);
+                string documentNumberPattern;
+
+                if (_documentType == "Passport")
+                {
+                    documentNumberPattern = @"\n([A-Z]\d{7})";
+                }
+                else if (_documentType == "Vietnam ID")
+                {
+                    documentNumberPattern = @"\n(\d{9,12})";
+                }
+                else
+                {
+                    return string.Empty;
+                }
+
+                var documentNumberMatch = Regex.Match(ocrText, documentNumberPattern);
                 string number = string.Empty;
 
-                if (passportNumberMatch.Success)
+                if (documentNumberMatch.Success)
                 {
-                    number = passportNumberMatch.Value.Replace("\n", string.Empty).Trim();
+                    number = documentNumberMatch.Value.Replace("\n", string.Empty).Trim();
                 }
 
                 return number;
@@ -397,7 +409,7 @@ namespace CheckInKiosk
             catch (Exception ex)
             {
                 ManualCheckInPanel.Visibility = Visibility.Visible;
-                ShowErrorMessage($"Error parsing passport details: {ex.Message}");
+                ShowErrorMessage($"Error parsing document details: {ex.Message}");
                 return string.Empty;
             }
         }

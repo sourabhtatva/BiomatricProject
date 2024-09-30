@@ -14,6 +14,8 @@ namespace CheckInKiosk
         private TimeSpan _inactivityDuration = TimeSpan.FromSeconds(15); // Set to 15 seconds
         private TimeSpan _remainingTime;
 
+        private bool _isMainScreenActive;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -35,6 +37,9 @@ namespace CheckInKiosk
             this.MouseMove += UserActivityDetected;
             this.KeyDown += UserActivityDetected;
             this.MouseDown += UserActivityDetected;
+
+            // Initially set the main screen as active
+            SetMainScreenActive();
         }
 
         private void InitializeInactivityTimer()
@@ -48,9 +53,12 @@ namespace CheckInKiosk
 
         private void ResetInactivityTimer()
         {
-            _remainingTime = _inactivityDuration;
-            _inactivityTimer.Stop();
-            _inactivityTimer.Start();
+            if (!_isMainScreenActive)
+            {
+                _remainingTime = _inactivityDuration;
+                _inactivityTimer.Stop();
+                _inactivityTimer.Start();
+            }
         }
 
         private void OnInactivityTimerTick(object sender, EventArgs e)
@@ -76,6 +84,13 @@ namespace CheckInKiosk
             takePhoto.Visibility = Visibility.Collapsed;
 
             StopTakePhotoCamera();
+            SetMainScreenActive();
+        }
+
+        private void SetMainScreenActive()
+        {
+            _isMainScreenActive = true;
+            _inactivityTimer.Stop();
         }
 
         private void HandleConsentYes()
@@ -83,12 +98,14 @@ namespace CheckInKiosk
             biometricAppPopup.Visibility = Visibility.Collapsed;
             scanDocument.Visibility = Visibility.Visible;
             ResetInactivityTimer();
+            SetMainScreenInactive();
         }
 
         private void HandleConsentNo()
         {
             ManualCheckInMessage.Visibility = Visibility.Visible;
             ResetInactivityTimer();
+            SetMainScreenInactive();
         }
 
         private void ShowTakePhoto()
@@ -97,6 +114,7 @@ namespace CheckInKiosk
             takePhoto.Visibility = Visibility.Visible;
             StartTakePhotoCamera();
             ResetInactivityTimer();
+            SetMainScreenInactive();
         }
 
         private void ShowRetryScan()
@@ -113,6 +131,11 @@ namespace CheckInKiosk
         private void StopTakePhotoCamera()
         {
             takePhoto?.StopCamera();
+        }
+
+        private void SetMainScreenInactive()
+        {
+            _isMainScreenActive = false;
         }
 
         public void RestartApplication()
