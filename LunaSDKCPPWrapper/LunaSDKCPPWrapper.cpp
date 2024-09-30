@@ -1,235 +1,195 @@
+#pragma once
 #include "pch.h"
 #include "LunaSDKCPPWrapper.h"
+#include "Constants.h"
 #include <fsdk/FaceEngine.h>
 #include <fsdk/ILicense.h>
 #include <stdexcept>
+#include <string>
 
 using namespace fsdk;
 using namespace System;
 using namespace System::Runtime::InteropServices;
 
+//Create FaceEngineWrapper class to use and initialize face engine object. 
 FaceEngineWrapper::FaceEngineWrapper()
 {
-    m_dataDirectory = "C:\\Users\\naman\\Documents\\Projects\\LunaSDKCPPWrapper\\data\\";
-    m_configPath = m_dataDirectory + "faceengine.conf";
+	std::string dataDirectory = DATA_DIC_DIR;
+	std::string configPath = dataDirectory + std::string(CONFIG_FILE_NAME);
+	std::string licensePath = dataDirectory + std::string(LICENSE_FILE_NAME);
 
-    std::string dataPath = ConvertStringToStdString(m_dataDirectory);
-    std::string configPath = ConvertStringToStdString(m_configPath);
+	m_dataDirectory = gcnew String(dataDirectory.c_str());
+	m_configPath = gcnew String(configPath.c_str());
+	m_licensePath = gcnew String(licensePath.c_str());
 
-    auto result = fsdk::createFaceEngine(dataPath.c_str(), configPath.c_str(), nullptr);
-    /*if (!result.isOk())
-    {
-        throw gcnew System::Exception("Failed to create FaceEngine: " + result.getError().ToString());
-    }*/
-
-    m_faceEngine = result.getValue();
-    m_license = m_faceEngine->getLicense();
-    m_settingsProvider = m_faceEngine->getSettingsProvider();
+	auto result = fsdk::createFaceEngine(dataDirectory.c_str(), configPath.c_str(), nullptr);
+	m_faceEngine = result.getValue();
+	m_license = m_faceEngine->getLicense();
+	m_settingsProvider = m_faceEngine->getSettingsProvider();
+	ActivateLicense();
+	IsActivated();
 }
 
+//Create ~FaceEngineWrapper destructor for releasing unused object.
 FaceEngineWrapper::~FaceEngineWrapper()
 {
-    this->!FaceEngineWrapper();
+	this->!FaceEngineWrapper();
 }
 
+//Create !FaceEngineWrapper method to set null pointers and using in destructor.
 FaceEngineWrapper::!FaceEngineWrapper()
 {
-    if (m_faceEngine)
-    {
-        m_faceEngine = nullptr;
-    }
-    if (m_license)
-    {
-        m_license = nullptr;
-    }
-    if (m_settingsProvider)
-    {
-        m_settingsProvider = nullptr;
-    }
+	if (m_faceEngine)
+	{
+		m_faceEngine = nullptr;
+	}
+	if (m_license)
+	{
+		m_license = nullptr;
+	}
+	if (m_settingsProvider)
+	{
+		m_settingsProvider = nullptr;
+	}
 }
 
+//Create InitializeEngine method that returns face engine object is initialized or not.
 bool FaceEngineWrapper::InitializeEngine()
 {
-    return m_faceEngine != nullptr;
+	return m_faceEngine != nullptr;
 }
 
-int FaceEngineWrapper::DetectFaces(array<unsigned char>^ image, [Out] int% faceCount)
-{
-    if (!InitializeEngine())
-    {
-        throw gcnew System::InvalidOperationException("Face engine is not initialized.");
-    }
-
-    pin_ptr<unsigned char> pinnedImage = &image[0];
-    unsigned char* unmanagedImage = pinnedImage;
-
-    auto detectorResult = m_faceEngine->createDetector();
-    /* if (!detectorResult.isOk())
-     {
-         throw gcnew System::Exception("Failed to create face detector: " + detectorResult.getError().ToString());
-     }*/
-
-    IDetectorPtr detector = detectorResult.getValue();
-
-    faceCount = 1; // Placeholder value
-    return faceCount;
-}
-
+//Create GetDataDirectory method that data directory path.
 String^ FaceEngineWrapper::GetDataDirectory()
 {
-    if (!InitializeEngine())
-    {
-        throw gcnew System::InvalidOperationException("Face engine is not initialized.");
-    }
+	if (!InitializeEngine())
+	{
+		throw gcnew System::InvalidOperationException("Face engine is not initialized.");
+	}
 
-    const char* dataDir = m_faceEngine->getDataDirectory();
-    if (dataDir == nullptr)
-    {
-        throw gcnew System::Exception("Failed to get data directory from FaceEngine.");
-    }
-
-    return gcnew String(dataDir);
+	const char* dataDir = m_faceEngine->getDataDirectory();
+	return gcnew String(dataDir);
 }
 
-//void FaceEngineWrapper::SetDataDirectory(String^ path)
-//{
-//    m_dataDirectory = path;
-//}
-//
-//void FaceEngineWrapper::SetConfigPath(String^ path)
-//{
-//    m_configPath = path;
-//}
-
+//Create CheckFeatureId method that checks whether provided feature Id is available or not.
 bool FaceEngineWrapper::CheckFeatureId(int featureId)
 {
-    if (!InitializeEngine())
-    {
-        throw gcnew System::InvalidOperationException("Face engine is not initialized.");
-    }
+	if (!InitializeEngine())
+	{
+		throw gcnew System::InvalidOperationException("Face engine is not initialized.");
+	}
 
-    fsdk::LicenseFeature feature = static_cast<fsdk::LicenseFeature>(featureId);
-    auto result = m_license->checkFeatureId(feature);
-    /*if (!result.isOk())
-    {
-        throw gcnew System::Exception("Failed to check feature ID: " + result.getError().ToString());
-    }*/
-
-    return result.getValue();
+	fsdk::LicenseFeature feature = static_cast<fsdk::LicenseFeature>(featureId);
+	auto result = m_license->checkFeatureId(feature);
+	if (!result.isOk()) {
+		throw gcnew System::Exception("feature is expired");
+	}
+	return result.getValue();
 }
 
+//Create IsActivated method that license is activated or not.
 bool FaceEngineWrapper::IsActivated()
 {
-    if (!InitializeEngine())
-    {
-        throw gcnew System::InvalidOperationException("Face engine is not initialized.");
-    }
+	if (!InitializeEngine())
+	{
+		throw gcnew System::InvalidOperationException("Face engine is not initialized.");
+	}
 
-    auto result = m_license->isActivated();
-    /*if (!result.isOk())
-    {
-        throw gcnew System::Exception("Failed to check activation status: " + result.getError().ToString());
-    }*/
-
-    return result.getValue();
+	auto result = m_license->isActivated();
+	return result.getValue();
 }
 
+//Create LoadLicenseFromFile method that load license from config file.
 bool FaceEngineWrapper::LoadLicenseFromFile(String^ path)
 {
-    if (!InitializeEngine())
-    {
-        throw gcnew System::InvalidOperationException("Face engine is not initialized.");
-    }
+	if (!InitializeEngine())
+	{
+		throw gcnew System::InvalidOperationException("Face engine is not initialized.");
+	}
 
-    std::string filePath = ConvertStringToStdString(path);
-    auto result = m_license->loadFromFile(filePath.c_str());
-    if (!result.isOk())
-    {
-        throw gcnew System::Exception("Failed to load license from file");
-    }
+	std::string filePath = ConvertStringToStdString(path);
+	auto result = m_license->loadFromFile(filePath.c_str());
+	if (!result.isOk())
+	{
+		throw gcnew System::Exception("Failed to load license from file");
+	}
 
-    return true;
+	return true;
 }
 
+//Create SaveLicenseToFile method that saves license as raw format to the file.
 bool FaceEngineWrapper::SaveLicenseToFile(String^ path)
 {
-    if (!InitializeEngine())
-    {
-        throw gcnew System::InvalidOperationException("Face engine is not initialized.");
-    }
+	if (!InitializeEngine())
+	{
+		throw gcnew System::InvalidOperationException("Face engine is not initialized.");
+	}
 
-    std::string filePath = ConvertStringToStdString(path);
-    auto result = m_license->saveToFile(filePath.c_str());
-    /*if (!result.isOk())
-    {
-        throw gcnew System::Exception("Failed to save license to file: " + result.getError().ToString());
-    }*/
-
-    return true;
+	std::string filePath = ConvertStringToStdString(path);
+	auto result = m_license->saveToFile(filePath.c_str());
+	return true;
 }
 
+//Create GetExpirationDate method that returns license expiration date for given feature Id.
 DateTime FaceEngineWrapper::GetExpirationDate(int featureId)
 {
-    if (!InitializeEngine())
-    {
-        throw gcnew System::InvalidOperationException("Face engine is not initialized.");
-    }
+	if (!InitializeEngine())
+	{
+		throw gcnew System::InvalidOperationException("Face engine is not initialized.");
+	}
 
-    fsdk::LicenseFeature feature = static_cast<fsdk::LicenseFeature>(featureId);
-    auto result = m_license->getExpirationDate(feature);
-    if (!result.isOk())
-    {
-        throw gcnew System::Exception("Failed to get expiration date");
-    }
-
-    uint32_t timestamp = result.getValue();
-    DateTime expirationDate = DateTime::FromFileTimeUtc(static_cast<long long>(timestamp) * 10000000LL + 116444736000000000LL); // Convert Unix timestamp to .NET DateTime
-    return expirationDate;
+	fsdk::LicenseFeature feature = static_cast<fsdk::LicenseFeature>(featureId);
+	auto result = m_license->getExpirationDate(feature);
+	uint32_t timestamp = result.getValue();
+	DateTime expirationDate = DateTime::FromFileTimeUtc(static_cast<long long>(timestamp) * 10000000LL + 116444736000000000LL);
+	return expirationDate;
 }
 
-//ILicense FaceEngineWrapper::GetLicense()
-//{
-//    if (!InitializeEngine())
-//    {
-//        throw gcnew System::InvalidOperationException("Face engine is not initialized.");
-//    }
-//
-//    if (m_license == nullptr)
-//    {
-//        throw gcnew System::Exception("License object is not available.");
-//    }
-//
-//    return gcnew ILicense(m_license); // Create and return a managed ILicense object
-//}
-
-std::string FaceEngineWrapper::ConvertStringToStdString(String^ managedString)
-{
-    IntPtr pString = Marshal::StringToHGlobalAnsi(managedString);
-    std::string narrowString(static_cast<char*>(pString.ToPointer()));
-    Marshal::FreeHGlobal(pString);
-    return narrowString;
-}
-
+//Create GetDefaultPath method that returns default settings path.
 String^ FaceEngineWrapper::GetDefaultPath()
 {
-    if (m_settingsProvider == nullptr)
-    {
-        throw gcnew System::InvalidOperationException("Settings provider is not initialized.");
-    }
+	if (m_settingsProvider == nullptr)
+	{
+		throw gcnew System::InvalidOperationException("Settings provider is not initialized.");
+	}
 
-    const char* defaultPath = m_settingsProvider->getDefaultPath();
-    if (defaultPath == nullptr)
-    {
-        throw gcnew System::Exception("Failed to get default path.");
-    }
-
-    return gcnew String(defaultPath);
+	const char* defaultPath = m_settingsProvider->getDefaultPath();
+	return gcnew String(defaultPath);
 }
 
-//std::string FaceEngineWrapper::ConvertStringToStdString(String^ managedString)
-//{
-//    IntPtr pString = Marshal::StringToHGlobalAnsi(managedString);
-//    std::string narrowString(static_cast<char*>(pString.ToPointer()));
-//    Marshal::FreeHGlobal(pString);
-//    return narrowString;
-//}
+bool FaceEngineWrapper::ActivateLicense() {
+	try {
+		if (!InitializeEngine()) {
+			throw gcnew System::InvalidOperationException("Face engine is not initialized.");
+		}
+
+		if (m_license == nullptr) {
+			throw gcnew System::InvalidOperationException("License provider is not initialized.");
+		}
+
+		std::string licensePath = ConvertStringToStdString(m_licensePath);
+
+		auto result = fsdk::activateLicense(m_license, licensePath.c_str());
+		if (!result.isOk()) {
+			throw gcnew System::Exception("License activation failed");
+		}
+
+		bool activated = m_license->isActivated();
+		return activated;
+	}
+	catch (const std::exception& ex) {
+		// Log or handle the exception
+		Console::WriteLine("An error occurred in ActivateLicense: " + gcnew String(ex.what()));
+		return false;
+	}
+}
+
+
+//Create ConvertStringToStdString method that converts string into std::string format.
+std::string FaceEngineWrapper::ConvertStringToStdString(String^ managedString)
+{
+	IntPtr pString = Marshal::StringToHGlobalAnsi(managedString);
+	std::string narrowString(static_cast<char*>(pString.ToPointer()));
+	Marshal::FreeHGlobal(pString);
+	return narrowString;
+}

@@ -1,7 +1,6 @@
 ﻿using BiometricAuthenticationAPI.Helpers.Constants;
 using BiometricAuthenticationAPI.Helpers.Extensions;
 using BiometricAuthenticationAPI.Services.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BiometricAuthenticationAPI.Controllers
@@ -31,11 +30,13 @@ namespace BiometricAuthenticationAPI.Controllers
 
                 //int response = _visionLabFaceService.DetectFaces(bytes);
 
-                //string response = _visionLabFaceService.GetDataDictionary();
+                //bool response = _visionLabFaceService.CheckFeatureId(1);
 
                 //bool response = _visionLabFaceService.GetLicenseActivated();
 
-                string response = _visionLabFaceService.GetDefaultPath();
+                //string response = _visionLabFaceService.GetDefaultPath();
+
+                string response = _visionLabFaceService.GetDataDictionary();
 
                 return this.SuccessResult(response, Messages.FaceMatching.General.FaceMatchingMessage(_entityName));
             }
@@ -45,6 +46,5 @@ namespace BiometricAuthenticationAPI.Controllers
                 throw;
             }
         }
-    }
     }
 }

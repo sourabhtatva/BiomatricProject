@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.8.34525.116
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BiometricAuthenticationAPI", "BiometricAuthenticationAPI\BiometricAuthenticationAPI.csproj", "{1F28AEDF-FFAB-433D-A282-9417B18F8236}"
+	ProjectSection(ProjectDependencies) = postProject
+		{8959E511-94C7-4DCA-98F6-BD10D8BEF1B5} = {8959E511-94C7-4DCA-98F6-BD10D8BEF1B5}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CheckInKiosk", "CheckInKiosk\CheckInKiosk.csproj", "{2C7A06D9-1A48-47FD-9BD4-B26D3FE735A9}"
 EndProject

@@ -13,28 +13,27 @@ public ref class FaceEngineWrapper
 {
 
 public:
-    FaceEngineWrapper();
-    ~FaceEngineWrapper();
-    !FaceEngineWrapper(); // Finalizer
+	FaceEngineWrapper();
+	~FaceEngineWrapper();
+	!FaceEngineWrapper();
 
-    bool InitializeEngine();
-    int DetectFaces(array<unsigned char>^ image, [Out] int% faceCount);
-    String^ GetDataDirectory();
-    // Expose ILicense methods
-    bool CheckFeatureId(int featureId);
-    bool IsActivated();
-    bool LoadLicenseFromFile(String^ path);
-    bool SaveLicenseToFile(String^ path);
-    DateTime GetExpirationDate(int featureId);
-    /*ILicense GetLicense();*/
-    String^ GetDefaultPath();
+	bool InitializeEngine();
+	String^ GetDataDirectory();
+	bool CheckFeatureId(int featureId);
+	bool IsActivated();
+	bool LoadLicenseFromFile(String^ path);
+	bool SaveLicenseToFile(String^ path);
+	DateTime GetExpirationDate(int featureId);
+	String^ GetDefaultPath();
+	bool ActivateLicense();
 
 private:
-    fsdk::IFaceEngine* m_faceEngine; // Pointer to the faceEngine object
-    fsdk::ILicense* m_license; // Pointer to the license object
-    fsdk::ISettingsProvider* m_settingsProvider;
-    String^ m_dataDirectory;
-    String^ m_configPath;
+	fsdk::IFaceEngine* m_faceEngine;
+	fsdk::ILicense* m_license;
+	fsdk::ISettingsProvider* m_settingsProvider;
+	String^ m_dataDirectory;
+	String^ m_configPath;
+	String^ m_licensePath;
 
-    std::string ConvertStringToStdString(String^ managedString);
+	std::string ConvertStringToStdString(String^ managedString);
 };
