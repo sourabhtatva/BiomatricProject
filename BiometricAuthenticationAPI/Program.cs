@@ -3,6 +3,9 @@ using BiometricAuthenticationAPI.Repositories;
 using BiometricAuthenticationAPI.Repositories.Interfaces;
 using BiometricAuthenticationAPI.Services;
 using BiometricAuthenticationAPI.Services.Interfaces;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +21,8 @@ builder.Services.AddScoped<IAwsFaceService, AwsFaceService>();
 builder.Services.AddScoped<IUserIdentificationDataService, UserIdentificationDataService>();
 builder.Services.AddScoped<IUserIdentificationTypeService, UserIdentificationTypeService>();
 builder.Services.AddScoped<IRecognitionLogService, RecognitionLogService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+
 
 // Transient Lifetime Repositories
 builder.Services.AddTransient<IUserIdentificationDataRepository, UserIdentificationDataRepository>();
@@ -31,6 +36,26 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddMemoryCache();
 
+// Add authentication and authorization
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+    };
+});
+
 
 var app = builder.Build();
 
@@ -41,6 +66,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
