@@ -14,4 +14,5 @@
 # Ignore user secrets
 **/secrets.json
 
-/CheckInKiosk/obj/Debug/
+# Ignore app settings (optional)
+appsettings.json
