@@ -2,13 +2,16 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
-/.vs
-/CheckInKiosk/bin/Debug/net8.0-windows10.0.18362.0
-/BiometricAuthenticationAPI/obj/Debug/net8.0/BiometricAuthenticationAPI.AssemblyInfo.cs
-/BiometricAuthenticationAPI/appsettings.json
-# Ignore bin and obj folders
-/BiometricAuthenticationAPI/bin/
-/BiometricAuthenticationAPI/obj/
-/CheckInKiosk/bin/
-/CheckInKiosk/obj/
+# Ignore Visual Studio temporary files
+.vs/
+*.user
+*.suo
 
+# Ignore build output folders
+**/bin/
+**/obj/
+
+# Ignore user secrets
+**/secrets.json
+
+/CheckInKiosk/obj/Debug/
