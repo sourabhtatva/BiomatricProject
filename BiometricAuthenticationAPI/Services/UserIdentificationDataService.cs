@@ -27,7 +27,7 @@ namespace BiometricAuthenticationAPI.Services
             DocumentValidateResponse documentValidateResponse = new();
             try
             {
-                //documentDetailRequest.DocumentNumber = CommonHelper.DecryptString(documentDetailRequest.DocumentNumber);
+                documentDetailRequest.DocumentNumber = CommonHelper.DecryptString(documentDetailRequest.DocumentNumber);
 
                 var parameters = new DynamicParameters();
                 parameters.Add(DBConstants.DocumentValidationResponse.DOCUMENT_NUMBER, documentDetailRequest.DocumentNumber, DbType.String, ParameterDirection.Input);
