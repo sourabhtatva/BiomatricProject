@@ -2,6 +2,10 @@
 {
     public static class Messages
     {
+        public static class Common
+        {
+            public static readonly string ModelStateFailureMessage = "Model State Failed..!";
+        }
         public static class UserIdentificationData
         {
             public static class General

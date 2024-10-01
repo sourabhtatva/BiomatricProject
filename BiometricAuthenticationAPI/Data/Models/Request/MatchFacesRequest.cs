@@ -1,4 +1,4 @@
-﻿namespace BiometricAuthenticationAPI.Data.Models
+﻿namespace BiometricAuthenticationAPI.Data.Models.Request
 {
     public class MatchFacesRequest
     {

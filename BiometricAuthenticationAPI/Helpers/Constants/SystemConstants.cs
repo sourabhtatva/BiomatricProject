@@ -25,6 +25,7 @@
             public static readonly string OCP_APIM_SUBSCRIPTION_KEY = "Ocp-Apim-Subscription-Key";
             public static readonly string CONTENT_TYPE = "application/json";
             public static readonly float AWS_THRESHOLD_VALUE = 90F;
+            public static readonly string LOG_FILE_PATH = "Logs/logfile.log";
         }
 
         public static class UserIdentificationData

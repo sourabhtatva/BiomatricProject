@@ -1,4 +1,5 @@
-﻿using BiometricAuthenticationAPI.Data.Models;
+﻿using BiometricAuthenticationAPI.Data.Models.Common;
+using BiometricAuthenticationAPI.Data.Models.Request;
 using BiometricAuthenticationAPI.Data.Models.Response;
 using BiometricAuthenticationAPI.Helpers.Constants;
 using BiometricAuthenticationAPI.Helpers.Extensions;
@@ -18,6 +19,11 @@ namespace BiometricAuthenticationAPI.Controllers
         private readonly ILogger<FaceMatchingController> _logger = logger;
         private readonly string _entityName = SystemConstants.FaceMatching.CONTROLLER_ENTITY;
 
+        /// <summary>
+        /// Match Face API endpoint.
+        /// </summary>
+        /// <param name="request">Match Face Request Data.</param>
+        /// <returns>Match Face response.</returns>
         [HttpPost("match")]
         public async Task<IActionResult> MatchFacesAWS([FromBody] MatchFacesRequest request)
         {
@@ -25,7 +31,8 @@ namespace BiometricAuthenticationAPI.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    throw new DataValidationException(ModelState);
+                    IList<ValidationDetails> errorInfo = ModelState.Select(ex => new ValidationDetails { InputName = ex.Key, ValidationMessage = ex.Value?.Errors.FirstOrDefault()?.ErrorMessage }).ToList();
+                    return this.FailureResult(errorInfo, Messages.Common.ModelStateFailureMessage);
                 }
 
                 FaceVerifyResponse? response = await _faceMatchService.MatchFace(request);
@@ -35,9 +42,8 @@ namespace BiometricAuthenticationAPI.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
-                throw;
+                return this.FailureResult(null, ex.Message);
             }
         }
-
     }
 }

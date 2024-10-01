@@ -3,14 +3,9 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace BiometricAuthenticationAPI.Services
 {
-    public class MemoryCacheService : IMemoryCacheService
+    public class MemoryCacheService(IMemoryCache memoryCache) : IMemoryCacheService
     {
-        private readonly IMemoryCache _memoryCache;
-
-        public MemoryCacheService(IMemoryCache memoryCache)
-        {
-            _memoryCache = memoryCache;
-        }
+        private readonly IMemoryCache _memoryCache = memoryCache;
 
         public void SetData(string key, string data)
         {

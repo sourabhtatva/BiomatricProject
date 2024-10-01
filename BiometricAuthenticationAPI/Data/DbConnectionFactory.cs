@@ -3,14 +3,9 @@ using System.Data;
 
 namespace BiometricAuthenticationAPI.Data
 {
-    public class DbConnectionFactory : IDbConnectionFactory
+    public class DbConnectionFactory(IConfiguration configuration) : IDbConnectionFactory
     {
-        private readonly string _connectionString;
-
-        public DbConnectionFactory(IConfiguration configuration)
-        {
-            _connectionString = configuration.GetConnectionString("DefaultConnection");
-        }
+        private readonly string _connectionString = configuration.GetConnectionString("DefaultConnection");
 
         public IDbConnection CreateConnection()
         {

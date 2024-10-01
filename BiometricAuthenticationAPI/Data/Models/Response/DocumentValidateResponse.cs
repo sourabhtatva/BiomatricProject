@@ -1,6 +1,6 @@
 ﻿namespace BiometricAuthenticationAPI.Data.Models.Response
 {
-    public class DocumentValidateResponse
+    public class DocumentValidateResponse : APIErrorResponse
     {
         public int? UserId { get; set; }
         public bool IsValid { get; set; }

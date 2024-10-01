@@ -1,7 +1,7 @@
-﻿using BiometricAuthenticationAPI.Data.Models;
+﻿using BiometricAuthenticationAPI.Data.Models.Common;
+using BiometricAuthenticationAPI.Data.Models.Request;
 using BiometricAuthenticationAPI.Helpers.Constants;
 using BiometricAuthenticationAPI.Helpers.Extensions;
-using BiometricAuthenticationAPI.Helpers.Utils;
 using BiometricAuthenticationAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,38 +20,8 @@ namespace BiometricAuthenticationAPI.Controllers
         /// <summary>
         /// Add User Identification Data api.
         /// </summary>
-        /// <param name="userIdentificationData">User Identification data.</param>
-        /// <returns>Created user Identification Data object in response.</returns>
-        /// <exception cref="DataValidationException">Show model validation errors.</exception>
-        [HttpPost]
-        public async Task<ActionResult> InsertUserIdentificationData([FromBody] UserIdentificationData userIdentificationData)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    throw new DataValidationException(ModelState);
-                }
-
-                var response = await _userIdentificationDataService.InsertUserIdentificationData(userIdentificationData);
-
-                return response == null
-                    ? this.FailureResult(null, Messages.UserIdentificationData.General.AddError(_entityName))
-                    : this.SuccessResult(response, Messages.UserIdentificationData.General.AddMessage(_entityName));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-                throw;
-            }
-        }
-
-        /// <summary>
-        /// Add User Identification Data api.
-        /// </summary>
         /// <param name="documentDetail">Document detail data.</param>
         /// <returns>Document Validate Response Data object in response.</returns>
-        /// <exception cref="DataValidationException">Show model validation errors.</exception>
         [HttpPost("validate")]
         public async Task<ActionResult> ValidateDocument([FromBody] DocumentDetailRequest documentDetail)
         {
@@ -59,7 +29,8 @@ namespace BiometricAuthenticationAPI.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    throw new DataValidationException(ModelState);
+                    IList<ValidationDetails> errorInfo = ModelState.Select(ex => new ValidationDetails { InputName = ex.Key, ValidationMessage = ex.Value?.Errors.FirstOrDefault()?.ErrorMessage }).ToList();
+                    return this.FailureResult(errorInfo, Messages.Common.ModelStateFailureMessage);
                 }
 
                 string? message = string.Empty;
@@ -78,7 +49,7 @@ namespace BiometricAuthenticationAPI.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
-                throw;
+                return this.FailureResult(null, ex.Message);
             }
         }
     }

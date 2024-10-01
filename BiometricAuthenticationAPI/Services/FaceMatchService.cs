@@ -1,5 +1,6 @@
 ﻿using Amazon.Rekognition.Model;
 using BiometricAuthenticationAPI.Data.Models;
+using BiometricAuthenticationAPI.Data.Models.Request;
 using BiometricAuthenticationAPI.Data.Models.Response;
 using BiometricAuthenticationAPI.Helpers.Constants;
 using BiometricAuthenticationAPI.Helpers.Utils;
@@ -7,18 +8,21 @@ using BiometricAuthenticationAPI.Services.Interfaces;
 
 namespace BiometricAuthenticationAPI.Services
 {
-    public class FaceMatchService(IAwsFaceService awsFaceService, IRecognitionLogService recognitionLogService, IMemoryCacheService memoryCacheService) : IFaceMatchService
+    public class FaceMatchService(IAwsFaceService awsFaceService, IRecognitionLogService recognitionLogService, IMemoryCacheService memoryCacheService, ILogger<FaceMatchService> logger) : IFaceMatchService
     {
         private readonly IAwsFaceService _awsFaceService = awsFaceService;
         private readonly IRecognitionLogService _recognitionLogService = recognitionLogService;
         private readonly IMemoryCacheService _memoryCacheService = memoryCacheService;
+        private readonly ILogger<FaceMatchService> _logger = logger;
 
         public async Task<FaceVerifyResponse?> MatchFace(MatchFacesRequest matchFacesRequest)
         {
+            FaceVerifyResponse response = new();
+            int userId = Convert.ToInt32(_memoryCacheService.GetData("UserId"));
+            _memoryCacheService.RemoveData("UserId");
+
             try
             {
-                FaceVerifyResponse response = new FaceVerifyResponse();
-
                 matchFacesRequest.ScannedImage = CommonHelper.DecryptByteArray(matchFacesRequest.ScannedImage);
                 matchFacesRequest.ClickedImage = CommonHelper.DecryptByteArray(matchFacesRequest.ClickedImage);
 
@@ -56,10 +60,6 @@ namespace BiometricAuthenticationAPI.Services
                     response.IsIdentical = false;
                 }
 
-                int userId = Convert.ToInt32(_memoryCacheService.GetData("UserId"));
-
-                _memoryCacheService.RemoveData("UserId");
-
                 RecognitionLog recognitionLog = new()
                 {
                     ConfidenceLevel = response.Confidence,
@@ -75,8 +75,25 @@ namespace BiometricAuthenticationAPI.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
-                return null;
+                _logger.LogError(ex.Message);
+
+                response.Confidence = 0.0F;
+                response.Similarity = 0.0F;
+                response.IsIdentical = false;
+                response.ErrorMessage = ex.Message;
+
+                RecognitionLog recognitionLog = new()
+                {
+                    ConfidenceLevel = response.Confidence,
+                    SimilarityLevel = response.Similarity,
+                    UserId = userId,
+                    RecognitionTime = DateTime.Now,
+                    Status = SystemConstants.General.FAILURE
+                };
+
+                await _recognitionLogService.AddRecognitionLogData(recognitionLog);
+
+                return response;
             }
         }
     }

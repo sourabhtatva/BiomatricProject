@@ -1,4 +1,4 @@
-﻿using BiometricAuthenticationAPI.Data.Models;
+﻿using BiometricAuthenticationAPI.Data.Models.Request;
 using BiometricAuthenticationAPI.Data.Models.Response;
 
 namespace BiometricAuthenticationAPI.Services.Interfaces
