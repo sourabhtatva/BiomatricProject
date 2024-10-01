@@ -2,6 +2,9 @@
 {
     public static class UIMessages
     {
+        /// <summary>
+        /// Messages for document verification
+        /// </summary>
         public static class DocumentVerification
         {
             public static readonly Func<string, string> DocVerificationInProgressMessage = (entity) => $"Verifying given details for {entity}...";
@@ -9,6 +12,9 @@
             public static readonly Func<string, string> DocVerificationErrorMessage = (message) => $"An error occurred: {message}";
         }
 
+        /// <summary>
+        /// Messages for face verification
+        /// </summary>
         public static class FaceVerification
         {
             public const string CameraNotFoundMessage = "No camera found!";
@@ -17,9 +23,6 @@
             public const string VerificationCancelMessage = "The verification process was canceled.";
             public static readonly Func<string, string> VerificationErrorMessage = (message) => $"Error during verification: {message}";
             public static readonly Func<string, string> VerificationApiErrorMessage = (message) => $"Verification API error: {message}";
-
-            // Added new error messages
-
             public const string CameraStopErrorMessage = "Error stopping the camera.";
             public static readonly Func<string, string> NewFrameProcessingErrorMessage = (message) => $"Error processing video frame: {message}";
             public static readonly Func<string, string> CaptureImageErrorMessage = (message) => $"Error capturing image: {message}";

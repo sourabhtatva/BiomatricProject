@@ -1,8 +1,0 @@
-C:\Users\ptdrd\source\repos\CheckInKiosk\CheckInKiosk\obj\Debug\net8.0-windows\BiometricAppPopup.g.cs
-C:\Users\ptdrd\source\repos\CheckInKiosk\CheckInKiosk\obj\Debug\net8.0-windows\MainWindow.g.cs
-C:\Users\ptdrd\source\repos\CheckInKiosk\CheckInKiosk\obj\Debug\net8.0-windows\MatchAndEnroll.g.cs
-C:\Users\ptdrd\source\repos\CheckInKiosk\CheckInKiosk\obj\Debug\net8.0-windows\ScanDocument.g.cs
-C:\Users\ptdrd\source\repos\CheckInKiosk\CheckInKiosk\obj\Debug\net8.0-windows\App.g.cs
-C:\Users\ptdrd\source\repos\CheckInKiosk\CheckInKiosk\obj\Debug\net8.0-windows\GeneratedInternalTypeHelper.g.cs
-C:\Users\ptdrd\source\repos\CheckInKiosk\CheckInKiosk\obj\Debug\net8.0-windows\CheckInKiosk_MarkupCompile.cache
-C:\Users\ptdrd\source\repos\CheckInKiosk\CheckInKiosk\obj\Debug\net8.0-windows\CheckInKiosk_MarkupCompile.lref

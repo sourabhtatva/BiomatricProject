@@ -35,10 +35,12 @@ namespace CheckInKiosk
         private HttpClientService _httpClientService;
         private Storyboard _loadingStoryboard;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TakePhoto"/> class.
+        /// </summary>
         public TakePhoto()
         {
             InitializeComponent();
-            InitializeLoaderAnimation();
 
             try
             {
@@ -52,33 +54,50 @@ namespace CheckInKiosk
 
             // Initialize the timer
             captureTimer = new DispatcherTimer();
-            captureTimer.Interval = TimeSpan.FromSeconds(3);
+            captureTimer.Interval = TimeSpan.FromSeconds(UIConstants.IntervalDurationForTimer);
             captureTimer.Tick += CaptureTimer_Tick;
 
             // Initialize CancellationTokenSource
             cts = new CancellationTokenSource();
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TakePhoto"/> class.
+        /// </summary>
+        /// <param name="httpClientService">The HTTP client service.</param>
+        /// <exception cref="ArgumentNullException">httpClientService</exception>
         public TakePhoto(HttpClientService httpClientService) : this()
         {
             _httpClientService = httpClientService ?? throw new ArgumentNullException(nameof(httpClientService));
         }
-
-        // Method to set the HttpClientService after instantiation
+        
+        /// <summary>
+        /// Sets the HTTP client service.
+        /// </summary>
+        /// <param name="httpClientService">The HTTP client service.</param>
+        /// <exception cref="ArgumentNullException">httpClientService</exception>
         public void SetHttpClientService(HttpClientService httpClientService)
         {
             _httpClientService = httpClientService ?? throw new ArgumentNullException(nameof(httpClientService));
         }
 
+        /// <summary>
+        /// Handles the Tick event of the CaptureTimer control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         private void CaptureTimer_Tick(object sender, EventArgs e)
         {
             if (faceDetected && capturedImage != null)
             {
                 captureTimer.Stop();
-                CaptureAndVerify(); // Trigger the capture click method
+                CaptureAndVerify();
             }
         }
 
+        /// <summary>
+        /// Starts the camera.
+        /// </summary>
         public void StartCamera()
         {
             try
@@ -101,6 +120,9 @@ namespace CheckInKiosk
             }
         }
 
+        /// <summary>
+        /// Stops the camera.
+        /// </summary>
         public void StopCamera()
         {
             try
@@ -108,7 +130,6 @@ namespace CheckInKiosk
                 if (videoSource != null && videoSource.IsRunning)
                 {
                     videoSource.SignalToStop();
-                    videoSource.WaitForStop();
                     videoSource.NewFrame -= OnNewFrame;
                 }
             }
@@ -118,11 +139,22 @@ namespace CheckInKiosk
             }
             finally
             {
-                videoSource = null;
-                captureTimer.Stop();
+                if (videoSource != null)
+                {
+                    videoSource.SignalToStop();
+                    videoSource = null;
+                }
+
+                captureTimer?.Stop();
+                captureTimer = null;
             }
         }
 
+        /// <summary>
+        /// Called when new frame is captured from camera.
+        /// </summary>
+        /// <param name="sender">The sender.</param>
+        /// <param name="eventArgs">The <see cref="NewFrameEventArgs"/> instance containing the event data.</param>
         private void OnNewFrame(object sender, NewFrameEventArgs eventArgs)
         {
             try
@@ -163,6 +195,11 @@ namespace CheckInKiosk
             }
         }
 
+        /// <summary>
+        /// Method for converting bitmap to bitmapSource.
+        /// </summary>
+        /// <param name="bitmap">The bitmap.</param>
+        /// <returns></returns>
         private static BitmapSource BitmapToImageSource(Bitmap bitmap)
         {
             try
@@ -186,10 +223,16 @@ namespace CheckInKiosk
             }
         }
 
+        /// <summary>
+        /// Captures the and verify.
+        /// </summary>
         private void CaptureAndVerify()
         {
             try
             {
+                // Stop the camera once the image is captured
+                StopCamera();
+
                 WebcamFeed.Visibility = Visibility.Collapsed;
                 ShowLoadingOverlay();
                 VerificationMessage.Text = UIMessages.FaceVerification.IdentityVerificationInProgressMessage;
@@ -197,13 +240,14 @@ namespace CheckInKiosk
                 CapturePhotoTitle.Visibility = Visibility.Collapsed;
                 MainContent.Visibility = Visibility.Collapsed;
 
-            byte[] scannedImageData = Convert.FromBase64String(ApplicationData.DocumentScannedImage);
-            byte[] encryptedScannedImageData = Encryptor.EncryptByteArray(scannedImageData);
-            string documentScannedImageBase64String = Convert.ToBase64String(encryptedScannedImageData);
+                byte[] scannedImageData = Convert.FromBase64String(ApplicationData.DocumentScannedImage);
+                byte[] encryptedScannedImageData = Encryptor.EncryptByteArray(scannedImageData);
+                string documentScannedImageBase64String = Convert.ToBase64String(encryptedScannedImageData);
 
                 if (capturedImage == null)
                 {
                     MessageBox.Show(UIMessages.FaceVerification.CameraStartErrorMessage("Camera failed to capture an image."));
+                    return;
                 }
 
                 string clickedImageDataBase64String = BitmapToBase64String(capturedImage);
@@ -266,6 +310,13 @@ namespace CheckInKiosk
             }
         }
 
+        /// <summary>
+        /// Verifies the image asynchronous.
+        /// </summary>
+        /// <param name="clickImage">The click image.</param>
+        /// <param name="scanImage">The scan image.</param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         private async Task<FaceVerifyResponseUI> VerifyImageAsync(string clickImage, string scanImage)
         {
             try
@@ -306,9 +357,13 @@ namespace CheckInKiosk
             }
         }
 
+        /// <summary>
+        /// Called when [okay click].
+        /// </summary>
+        /// <param name="sender">The sender.</param>
+        /// <param name="e">The <see cref="RoutedEventArgs"/> instance containing the event data.</param>
         private void OnOkayClick(object sender, RoutedEventArgs e)
         {
-            // Notify the MainWindow to restart the application
             var mainWindow = Application.Current.MainWindow as MainWindow;
             if (mainWindow != null)
             {
@@ -316,6 +371,11 @@ namespace CheckInKiosk
             }
         }
 
+        /// <summary>
+        /// Bitmaps to base64 string.
+        /// </summary>
+        /// <param name="bitmapcapturedImage">The bitmapcaptured image.</param>
+        /// <returns></returns>
         private string BitmapToBase64String(Bitmap bitmapcapturedImage)
         {
             try
@@ -334,33 +394,16 @@ namespace CheckInKiosk
             }
         }
 
-        private void InitializeLoaderAnimation()
-        {
-            _loadingStoryboard = new Storyboard();
-
-            var rotateAnimation = new DoubleAnimation
-            {
-                From = 0,
-                To = 360,
-                Duration = new Duration(TimeSpan.FromSeconds(1)),
-                RepeatBehavior = RepeatBehavior.Forever
-            };
-
-            Storyboard.SetTarget(rotateAnimation, RotateTransform);
-            Storyboard.SetTargetProperty(rotateAnimation, new PropertyPath(RotateTransform.AngleProperty));
-
-            _loadingStoryboard.Children.Add(rotateAnimation);
-        }
-
         private void ShowLoadingOverlay()
         {
             LoadingOverlay.Visibility = Visibility.Visible;
-            _loadingStoryboard.Begin();
         }
 
+        /// <summary>
+        /// Hides the loading overlay.
+        /// </summary>
         private void HideLoadingOverlay()
         {
-            _loadingStoryboard.Stop();
             LoadingOverlay.Visibility = Visibility.Collapsed;
         }
     }

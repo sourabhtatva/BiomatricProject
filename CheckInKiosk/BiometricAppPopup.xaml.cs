@@ -9,11 +9,19 @@ namespace CheckInKiosk
         public event Action OnConsentYes;
         public event Action OnConsentNo;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BiometricAppPopup"/> class.
+        /// </summary>
         public BiometricAppPopup()
         {
             InitializeComponent();
         }
 
+        /// <summary>
+        /// Called when [yes click].
+        /// </summary>
+        /// <param name="sender">The sender.</param>
+        /// <param name="e">The <see cref="RoutedEventArgs"/> instance containing the event data.</param>
         private void OnYesClick(object sender, RoutedEventArgs e)
         {
             try
@@ -24,11 +32,15 @@ namespace CheckInKiosk
             }
             catch (Exception ex)
             {
-                // Show error popup using MessageBox
                 ShowError(ex);
             }
         }
 
+        /// <summary>
+        /// Called when [no click].
+        /// </summary>
+        /// <param name="sender">The sender.</param>
+        /// <param name="e">The <see cref="RoutedEventArgs"/> instance containing the event data.</param>
         private void OnNoClick(object sender, RoutedEventArgs e)
         {
             try
@@ -39,11 +51,15 @@ namespace CheckInKiosk
             }
             catch (Exception ex)
             {
-                // Show error popup using MessageBox
                 ShowError(ex);
             }
         }
 
+        /// <summary>
+        /// Called when [okay click].
+        /// </summary>
+        /// <param name="sender">The sender.</param>
+        /// <param name="e">The <see cref="RoutedEventArgs"/> instance containing the event data.</param>
         private void OnOkayClick(object sender, RoutedEventArgs e)
         {
             try
@@ -57,12 +73,14 @@ namespace CheckInKiosk
             }
             catch (Exception ex)
             {
-                // Show error popup using MessageBox
                 ShowError(ex);
             }
         }
-
-        // Method to show error using MessageBox
+       
+        /// <summary>
+        /// Shows the error using MessageBox.
+        /// </summary>
+        /// <param name="ex">The ex.</param>
         private void ShowError(Exception ex)
         {
             MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);

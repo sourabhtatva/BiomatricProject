@@ -1,5 +1,8 @@
 ﻿namespace CheckInKiosk.Utils.Models
 {
+    /// <summary>
+    /// Model for face verification process response
+    /// </summary>
     public class FaceVerifyResponseUI
     {
         public bool IsIdentical { get; set; }

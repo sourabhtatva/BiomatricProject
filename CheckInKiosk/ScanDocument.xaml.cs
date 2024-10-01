@@ -34,30 +34,45 @@ namespace CheckInKiosk
         private string _selectedImagePath;
         private string _documentType;
         private Storyboard _loadingStoryboard;
-        private const int RequestTimeoutSeconds = 10;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ScanDocument"/> class.
+        /// </summary>
         public ScanDocument()
         {
             InitializeComponent();
-            InitializeLoaderAnimation();
         }
 
-        // Constructor with HttpClientService for manual instantiation
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ScanDocument"/> class.
+        /// </summary>
+        /// <param name="httpClientService">The HTTP client service.</param>
         public ScanDocument(HttpClientService httpClientService) : this()
         {
             _httpClientService = httpClientService;
         }
 
+        /// <summary>
+        /// Sets the HTTP client service.
+        /// </summary>
+        /// <param name="httpClientService">The HTTP client service.</param>
         public void SetHttpClientService(HttpClientService httpClientService)
         {
             _httpClientService = httpClientService;
         }
 
+        /// <summary>
+        /// Called when document option passport click.
+        /// </summary>
+        /// <param name="sender">The sender.</param>
+        /// <param name="e">The <see cref="RoutedEventArgs"/> instance containing the event data.</param>
         private void OnPassportButtonClick(object sender, RoutedEventArgs e)
         {
             try
             {
-                _documentType = "Passport";
+                _documentType = UIConstants.DocumentTypePassport;
+                PassportButton.Style = (Style)FindResource("HighlightButtonStyle");
+                IDCardButton.Style = (Style)FindResource("DefaultButtonStyle");
                 OnDocumentTypeSelected();
             }
             catch (Exception ex)
@@ -67,11 +82,18 @@ namespace CheckInKiosk
             }
         }
 
+        /// <summary>
+        /// Called when document option Vietnam ID click.
+        /// </summary>
+        /// <param name="sender">The sender.</param>
+        /// <param name="e">The <see cref="RoutedEventArgs"/> instance containing the event data.</param>
         private void OnIDCardButtonClick(object sender, RoutedEventArgs e)
         {
             try
             {
-                _documentType = "Vietnam ID";
+                _documentType = UIConstants.DocumentTypeVietnamId;
+                IDCardButton.Style = (Style)FindResource("HighlightButtonStyle");
+                PassportButton.Style = (Style)FindResource("DefaultButtonStyle");
                 OnDocumentTypeSelected();
             }
             catch (Exception ex)
@@ -81,6 +103,9 @@ namespace CheckInKiosk
             }
         }
 
+        /// <summary>
+        /// Called when [document type selected].
+        /// </summary>
         private void OnDocumentTypeSelected()
         {
             try
@@ -103,12 +128,15 @@ namespace CheckInKiosk
             }
         }
 
-        private async void OnNextClick(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// Called when [next click].
+        /// </summary>
+        private async void OnNextClick()
         {
             try
             {
                 string documentScannedImage = ApplicationData.DocumentScannedImage;
-                string passportNumber = ApplicationData.PassportNumber;
+                string documentNumber = ApplicationData.DocumentNumber;
                 bool hasError = false;
 
                 if (string.IsNullOrEmpty(_documentType))
@@ -122,22 +150,14 @@ namespace CheckInKiosk
                     return; // Exit if there are validation errors
                 }
 
-                MainStackPanel.Visibility = Visibility.Collapsed;
-                ImagePreviewStackPanel.Visibility = Visibility.Collapsed;
-                LoadingOverlay.Visibility = Visibility.Visible;
-                VerificationMessage.Visibility = Visibility.Visible;
-
                 VerificationMessage.Text = UIMessages.DocumentVerification.DocVerificationInProgressMessage(_documentType);
-
-                // Ensure UI updates are applied before starting the verification process
-                await Task.Delay(500); // Delay to show the loader and message
 
                 try
                 {
                     var request = new DocumentDetailRequestUI()
                     {
                         DocumentType = Encryptor.EncryptString(_documentType),
-                        DocumentNumber = Encryptor.EncryptString(passportNumber),
+                        DocumentNumber = Encryptor.EncryptString(documentNumber),
                         DocumentImage = Convert.ToBase64String(
                             Encryptor.EncryptByteArray(
                                 Convert.FromBase64String(documentScannedImage)
@@ -151,7 +171,7 @@ namespace CheckInKiosk
                         UIConstants.CONTENT_TYPE
                     );
 
-                    using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(RequestTimeoutSeconds)))
+                    using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(UIConstants.ResetTimeoutForCancellationToken)))
                     {
                         var responseData = await _httpClientService.PostAsync(APIEndpoint.VALIDATE_DOC_API, jsonContent);
                         var jsonDocument = JsonDocument.Parse(responseData);
@@ -196,20 +216,21 @@ namespace CheckInKiosk
                     ManualCheckInPanel.Visibility = Visibility.Visible;
                     ShowErrorMessage("Error parsing server response.");
                 }
-                catch (Exception ex)
-                {
-                    HideLoadingOverlay();
-                    ManualCheckInPanel.Visibility = Visibility.Visible;
-                    ShowErrorMessage($"An unexpected error occurred: {ex.Message}");
-                }
             }
             catch (Exception ex)
             {
+                HideLoadingOverlay();
+                VerificationMessage.Visibility = Visibility.Collapsed;
                 ManualCheckInPanel.Visibility = Visibility.Visible;
-                ShowErrorMessage($"Unexpected error: {ex.Message}");
             }
         }
 
+        /// <summary>
+        /// Called when [scan click].
+        /// </summary>
+        /// <param name="sender">The sender.</param>
+        /// <param name="e">The <see cref="RoutedEventArgs"/> instance containing the event data.</param>
+        /// <exception cref="InvalidOperationException">No scanner device found.</exception>
         private async void OnScanClick(object sender, RoutedEventArgs e)
         {
             try
@@ -228,12 +249,10 @@ namespace CheckInKiosk
 
                 if (hasError)
                 {
-                    return; // Exit if there are validation errors
+                    return;
                 }
 
                 VerificationMessage.Text = UIMessages.DocumentVerification.DocVerificationInProgressMessage(_documentType);
-
-                await Task.Delay(500); // Delay to show the loader and message
 
                 try
                 {
@@ -256,8 +275,8 @@ namespace CheckInKiosk
                     }
 
                     string extractedText = ExtractTextFromImage(bytes);
-                    string passportNumber = ParsePassportDetails(extractedText);
-                    ApplicationData.PassportNumber = passportNumber;
+                    string documentNumber = ParseDocumentDetails(extractedText);
+                    ApplicationData.DocumentNumber = documentNumber;
 
                     BitmapImage bitmapImage = new BitmapImage();
                     using (MemoryStream ms = new MemoryStream(bytes))
@@ -268,16 +287,9 @@ namespace CheckInKiosk
                         bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
                         bitmapImage.StreamSource = ms;
                         bitmapImage.EndInit();
-                        bitmapImage.Freeze();  // To make the BitmapImage thread-safe
+                        bitmapImage.Freeze();
                     }
-
-                    LoadingOverlay.Visibility = Visibility.Collapsed;
-                    VerificationMessage.Visibility = Visibility.Collapsed;
-                    UploadedPreviewImage.Source = bitmapImage;
-                    ImagePreviewStackPanel.Visibility = Visibility.Visible;
-                    UploadedPreviewImage.Visibility = Visibility.Visible;
-                    ImageUploadErrorTextBlock.Visibility = Visibility.Collapsed;
-                    NextPreviewButton.Visibility = Visibility.Visible;
+                    OnNextClick();
                 }
                 catch (InvalidOperationException ex)
                 {
@@ -299,6 +311,11 @@ namespace CheckInKiosk
             }
         }
 
+        /// <summary>
+        /// Called when [okay click].
+        /// </summary>
+        /// <param name="sender">The sender.</param>
+        /// <param name="e">The <see cref="RoutedEventArgs"/> instance containing the event data.</param>
         private void OnOkayClick(object sender, RoutedEventArgs e)
         {
             try
@@ -306,6 +323,7 @@ namespace CheckInKiosk
                 var mainWindow = Application.Current.MainWindow as MainWindow;
                 if (mainWindow != null)
                 {
+                    mainWindow.Close();
                     mainWindow.RestartApplication();
                 }
             }
@@ -316,8 +334,14 @@ namespace CheckInKiosk
             }
         }
 
+
+        /// <summary>
+        /// method for converting Bitmaps to base64 string.
+        /// </summary>
+        /// <param name="bitmapcapturedImage">The bitmapcaptured image.</param>
+        /// <returns></returns>
         private string BitmapToBase64String(Bitmap bitmapcapturedImage)
-        {
+            {
             try
             {
                 using (MemoryStream ms = new MemoryStream())
@@ -335,36 +359,14 @@ namespace CheckInKiosk
             }
         }
 
-        private void InitializeLoaderAnimation()
-        {
-            try
-            {
-
-                _loadingStoryboard = new Storyboard();
-                var rotateAnimation = new DoubleAnimation
-                {
-                    From = 0,
-                    To = 360,
-                    Duration = new Duration(TimeSpan.FromSeconds(1)),
-                    RepeatBehavior = RepeatBehavior.Forever
-                };
-                Storyboard.SetTarget(rotateAnimation, RotateTransform);
-                Storyboard.SetTargetProperty(rotateAnimation, new PropertyPath(RotateTransform.AngleProperty));
-                _loadingStoryboard.Children.Add(rotateAnimation);
-            }
-            catch (Exception ex)
-            {
-                ManualCheckInPanel.Visibility = Visibility.Visible;
-                ShowErrorMessage($"Error initializing loader animation: {ex.Message}");
-            }
-        }
-
+        /// <summary>
+        /// Shows the loader.
+        /// </summary>
         private void ShowLoadingOverlay()
         {
             try
             {
                 LoadingOverlay.Visibility = Visibility.Visible;
-                _loadingStoryboard.Begin();
             }
             catch (Exception ex)
             {
@@ -373,12 +375,14 @@ namespace CheckInKiosk
             }
         }
 
+        /// <summary>
+        /// Hides the loader.
+        /// </summary>
         private void HideLoadingOverlay()
         {
             try
             {
                 LoadingOverlay.Visibility = Visibility.Collapsed;
-                _loadingStoryboard.Stop();
             }
             catch (Exception ex)
             {
@@ -387,11 +391,20 @@ namespace CheckInKiosk
             }
         }
 
+        /// <summary>
+        /// Shows the error message.
+        /// </summary>
+        /// <param name="message">The message.</param>
         private void ShowErrorMessage(string message)
         {
             MessageBox.Show(message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
+        /// <summary>
+        /// Extracts the text from scanned document.
+        /// </summary>
+        /// <param name="imageData">The image data.</param>
+        /// <returns>All text from scanned document</returns>
         public string ExtractTextFromImage(byte[] imageData)
         {
             try
@@ -423,17 +436,36 @@ namespace CheckInKiosk
             }
         }
 
-        public string ParsePassportDetails(string ocrText)
+        /// <summary>
+        /// Parses the document details.
+        /// </summary>
+        /// <param name="ocrText">The ocr text.</param>
+        /// <returns>Passport Number or Vietnam ID number</returns>
+        public string ParseDocumentDetails(string ocrText)
         {
             try
             {
-                string passportNumberPattern = @"\n([A-Z]\d{7})";
-                var passportNumberMatch = Regex.Match(ocrText, passportNumberPattern);
+                string documentNumberPattern;
+
+                if (_documentType == UIConstants.DocumentTypePassport)
+                {
+                    documentNumberPattern = UIConstants.RegexForPassport;
+                }
+                else if (_documentType == UIConstants.DocumentTypeVietnamId)
+                {
+                    documentNumberPattern =UIConstants.RegexForVietnamId;
+                }
+                else
+                {
+                    return string.Empty;
+                }
+
+                var documentNumberMatch = Regex.Match(ocrText, documentNumberPattern);
                 string number = string.Empty;
 
-                if (passportNumberMatch.Success)
+                if (documentNumberMatch.Success)
                 {
-                    number = passportNumberMatch.Value.Replace("\n", string.Empty).Trim();
+                    number = documentNumberMatch.Value.Replace("\n", string.Empty).Trim();
                 }
 
                 return number;
@@ -441,7 +473,7 @@ namespace CheckInKiosk
             catch (Exception ex)
             {
                 ManualCheckInPanel.Visibility = Visibility.Visible;
-                ShowErrorMessage($"Error parsing passport details: {ex.Message}");
+                ShowErrorMessage($"Error parsing document details: {ex.Message}");
                 return string.Empty;
             }
         }
