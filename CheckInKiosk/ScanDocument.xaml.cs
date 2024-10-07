@@ -35,10 +35,13 @@ namespace CheckInKiosk
         private string _documentType;
         private Storyboard _loadingStoryboard;
         private const int RequestTimeoutSeconds = 10;
+        private LogConfig _logConfig;
+        private string logConfigPath;
 
         public ScanDocument()
         {
             InitializeComponent();
+            LoadLogConfig();
         }
 
         public ScanDocument(HttpClientService httpClientService) : this()
@@ -51,11 +54,22 @@ namespace CheckInKiosk
             _httpClientService = httpClientService;
         }
 
+        private void LoadLogConfig()
+        {
+            logConfigPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logConfig.json");
+            _logConfig = LogConfig.Load(logConfigPath);
+        }
+
+        private void LogError(string message)
+        {
+            Console.WriteLine(message);
+        }
+
         private void OnPassportButtonClick(object sender, RoutedEventArgs e)
         {
             try
             {
-                _documentType = "Passport";
+                _documentType = string.Format(_logConfig.UIConstants.DocumentTypePassport);
                 PassportButton.Style = (Style)FindResource("HighlightButtonStyle");
                 IDCardButton.Style = (Style)FindResource("DefaultButtonStyle");
                 OnDocumentTypeSelected();
@@ -63,7 +77,7 @@ namespace CheckInKiosk
             catch (Exception ex)
             {
                 ManualCheckInPanel.Visibility = Visibility.Visible;
-                ShowErrorMessage($"Error selecting passport: {ex.Message}");
+                LogError(string.Format(_logConfig.LogMessages.ErrorSelectingDocumentType, ex.Message));
             }
         }
 
@@ -71,7 +85,7 @@ namespace CheckInKiosk
         {
             try
             {
-                _documentType = "Vietnam ID";
+                _documentType = string.Format(_logConfig.UIConstants.DocumentTypeVietnamID);
                 IDCardButton.Style = (Style)FindResource("HighlightButtonStyle");
                 PassportButton.Style = (Style)FindResource("DefaultButtonStyle");
                 OnDocumentTypeSelected();
@@ -79,7 +93,7 @@ namespace CheckInKiosk
             catch (Exception ex)
             {
                 ManualCheckInPanel.Visibility = Visibility.Visible;
-                ShowErrorMessage($"Error selecting ID card: {ex.Message}");
+                LogError(string.Format(_logConfig.LogMessages.ErrorSelectingDocumentType, ex.Message));
             }
         }
 
@@ -101,7 +115,7 @@ namespace CheckInKiosk
             catch (Exception ex)
             {
                 ManualCheckInPanel.Visibility = Visibility.Visible;
-                ShowErrorMessage($"Error processing document type: {ex.Message}");
+                LogError(string.Format(_logConfig.LogMessages.ErrorProcessingDocumentType, ex.Message));
             }
         }
 
@@ -124,7 +138,7 @@ namespace CheckInKiosk
                     return; // Exit if there are validation errors
                 }
 
-                VerificationMessage.Text = UIMessages.DocumentVerification.DocVerificationInProgressMessage(_documentType);
+                VerificationMessage.Text = string.Format(_logConfig.LogMessages.DocumentVerificationInProgress, _documentType);
 
                 try
                 {
@@ -156,7 +170,7 @@ namespace CheckInKiosk
 
                         if (isVerified)
                         {
-                            VerificationMessage.Text = UIMessages.DocumentVerification.DocVerificationSuccessMessage;
+                            VerificationMessage.Text = _logConfig.LogMessages.DocumentVerifiedSuccess;
                             OnScanSuccess?.Invoke();
                         }
                         else
@@ -170,31 +184,31 @@ namespace CheckInKiosk
                 {
                     HideLoadingOverlay();
                     ManualCheckInPanel.Visibility = Visibility.Visible;
-                    ShowErrorMessage("The request timed out. Please try again later.");
+                    LogError(_logConfig.LogMessages.RequestTimeout);
                 }
                 catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.RequestTimeout)
                 {
                     HideLoadingOverlay();
                     ManualCheckInPanel.Visibility = Visibility.Visible;
-                    ShowErrorMessage("Request to server timed out. Please try again.");
+                    LogError(_logConfig.LogMessages.RequestTimeout);
                 }
-                catch (HttpRequestException ex)
+                catch (HttpRequestException)
                 {
                     HideLoadingOverlay();
                     ManualCheckInPanel.Visibility = Visibility.Visible;
-                    ShowErrorMessage("Network error occurred during document verification.");
+                    LogError(_logConfig.LogMessages.NetworkError);
                 }
                 catch (JsonException ex)
                 {
                     HideLoadingOverlay();
                     ManualCheckInPanel.Visibility = Visibility.Visible;
-                    ShowErrorMessage("Error parsing server response.");
+                    LogError(_logConfig.LogMessages.ParsingError);
                 }
             }
             catch (Exception ex)
             {
                 ManualCheckInPanel.Visibility = Visibility.Visible;
-                ShowErrorMessage($"Unexpected error: {ex.Message}");
+                LogError(string.Format(_logConfig.LogMessages.UnexpectedError, ex.Message));
             }
         }
 
@@ -216,10 +230,10 @@ namespace CheckInKiosk
 
                 if (hasError)
                 {
-                    return; 
+                    return;
                 }
 
-                VerificationMessage.Text = UIMessages.DocumentVerification.DocVerificationInProgressMessage(_documentType);
+                VerificationMessage.Text = string.Format(_logConfig.LogMessages.DocumentVerificationInProgress, _documentType);
 
                 try
                 {
@@ -254,7 +268,7 @@ namespace CheckInKiosk
                         bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
                         bitmapImage.StreamSource = ms;
                         bitmapImage.EndInit();
-                        bitmapImage.Freeze(); 
+                        bitmapImage.Freeze();
                     }
                     OnNextClick();
                 }
@@ -262,19 +276,19 @@ namespace CheckInKiosk
                 {
                     ManualCheckInPanel.Visibility = Visibility.Visible;
                     LoadingOverlay.Visibility = Visibility.Collapsed;
-                    ShowErrorMessage(ex.Message);
+                    LogError(ex.Message);
                 }
                 catch (Exception ex)
                 {
                     ManualCheckInPanel.Visibility = Visibility.Visible;
                     LoadingOverlay.Visibility = Visibility.Collapsed;
-                    ShowErrorMessage($"Unexpected error during scanning: {ex.Message}");
+                    LogError(string.Format(_logConfig.LogMessages.ErrorDuringScanning, ex.Message));
                 }
             }
             catch (Exception ex)
             {
                 ManualCheckInPanel.Visibility = Visibility.Visible;
-                ShowErrorMessage($"Unexpected error: {ex.Message}");
+                LogError(string.Format(_logConfig.LogMessages.UnexpectedError, ex.Message));
             }
         }
 
@@ -292,12 +306,12 @@ namespace CheckInKiosk
             catch (Exception ex)
             {
                 ManualCheckInPanel.Visibility = Visibility.Visible;
-                ShowErrorMessage($"Error restarting application: {ex.Message}");
+                LogError(string.Format(_logConfig.LogMessages.ErrorRestartingApplication, ex.Message));
             }
         }
 
         private string BitmapToBase64String(Bitmap bitmapcapturedImage)
-            {
+        {
             try
             {
                 using (MemoryStream ms = new MemoryStream())
@@ -309,8 +323,7 @@ namespace CheckInKiosk
             }
             catch (Exception ex)
             {
-                ManualCheckInPanel.Visibility = Visibility.Visible;
-                ShowErrorMessage($"Error converting bitmap to base64 string: {ex.Message}");
+                LogError(string.Format(_logConfig.LogMessages.ErrorDuringScanning, ex.Message));
                 return string.Empty;
             }
         }
@@ -324,27 +337,27 @@ namespace CheckInKiosk
             catch (Exception ex)
             {
                 ManualCheckInPanel.Visibility = Visibility.Visible;
-                ShowErrorMessage($"Error showing loading overlay: {ex.Message}");
+                LogError(string.Format(_logConfig.LogMessages.ErrorDuringShowingLoadingOverlay, ex.Message));
             }
         }
 
         private void HideLoadingOverlay()
-        {
+                {
             try
-            {
+                    {
                 LoadingOverlay.Visibility = Visibility.Collapsed;
             }
             catch (Exception ex)
             {
                 ManualCheckInPanel.Visibility = Visibility.Visible;
-                ShowErrorMessage($"Error hiding loading overlay: {ex.Message}");
-            }
-        }
+                LogError(string.Format(_logConfig.LogMessages.ErrorDuringHidingLoadingOverlay, ex.Message));
+                    }
+                }
 
         private void ShowErrorMessage(string message)
         {
             MessageBox.Show(message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
+            }
 
         public string ExtractTextFromImage(byte[] imageData)
         {
@@ -394,22 +407,22 @@ namespace CheckInKiosk
                 else
                 {
                     return string.Empty;
-                }
+        }
 
                 var documentNumberMatch = Regex.Match(ocrText, documentNumberPattern);
                 string number = string.Empty;
 
                 if (documentNumberMatch.Success)
-                {
+        {
                     number = documentNumberMatch.Value.Replace("\n", string.Empty).Trim();
-                }
+        }
 
                 return number;
             }
             catch (Exception ex)
-            {
+        {
                 ManualCheckInPanel.Visibility = Visibility.Visible;
-                ShowErrorMessage($"Error parsing document details: {ex.Message}");
+                LogError(string.Format(_logConfig.LogMessages.ParsingError, ex.Message));
                 return string.Empty;
             }
         }

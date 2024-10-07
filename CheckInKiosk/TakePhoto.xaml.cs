@@ -19,7 +19,6 @@ using System.Windows.Controls;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using System.Windows.Media;
 
 namespace CheckInKiosk
 {
@@ -33,11 +32,14 @@ namespace CheckInKiosk
         private bool faceDetected = false;
         private CascadeClassifier faceCascade;
         private HttpClientService _httpClientService;
-        private Storyboard _loadingStoryboard;
+        private LogConfig _logConfig;
+        private string logConfigPath;
+
 
         public TakePhoto()
         {
             InitializeComponent();
+            LoadLogConfig();
 
             try
             {
@@ -45,13 +47,15 @@ namespace CheckInKiosk
             }
             catch (Exception ex)
             {
-                MessageBox.Show(UIMessages.FaceVerification.FaceCascadeErrorMessage);
+                LogError(string.Format(_logConfig.LogMessages.FaceCascadeErrorMessage, ex.Message));
                 return; // Exit if the face cascade is not properly loaded
             }
 
             // Initialize the timer
-            captureTimer = new DispatcherTimer();
-            captureTimer.Interval = TimeSpan.FromSeconds(3);
+            captureTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(3)
+            };
             captureTimer.Tick += CaptureTimer_Tick;
 
             // Initialize CancellationTokenSource
@@ -61,6 +65,17 @@ namespace CheckInKiosk
         public TakePhoto(HttpClientService httpClientService) : this()
         {
             _httpClientService = httpClientService ?? throw new ArgumentNullException(nameof(httpClientService));
+        }
+
+        private void LoadLogConfig()
+        {
+            logConfigPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logConfig.json");
+            _logConfig = LogConfig.Load(logConfigPath);
+        }
+
+        private void LogError(string message)
+        {
+            Console.WriteLine(message);
         }
 
         // Method to set the HttpClientService after instantiation
@@ -91,12 +106,12 @@ namespace CheckInKiosk
                 }
                 else
                 {
-                    MessageBox.Show(UIMessages.FaceVerification.CameraNotFoundMessage);
+                    LogError(_logConfig.LogMessages.CameraNotFoundMessage);
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show(UIMessages.FaceVerification.CameraStartErrorMessage(ex.Message));
+                LogError(string.Format(_logConfig.LogMessages.CameraStartErrorMessage, ex.Message));
             }
         }
 
@@ -112,7 +127,7 @@ namespace CheckInKiosk
             }
             catch (Exception ex)
             {
-                MessageBox.Show(UIMessages.FaceVerification.CameraStopErrorMessage);
+                LogError(string.Format(_logConfig.LogMessages.CameraStopErrorMessage, ex.Message));
             }
             finally
             {
@@ -162,12 +177,11 @@ namespace CheckInKiosk
             }
             catch (Exception ex)
             {
-                // Log or show the error to the user without crashing the app
-                MessageBox.Show(UIMessages.FaceVerification.NewFrameProcessingErrorMessage(ex.Message));
+                LogError(string.Format(_logConfig.LogMessages.NewFrameProcessingErrorMessage, ex.Message));
             }
         }
 
-        private static BitmapSource BitmapToImageSource(Bitmap bitmap)
+        private BitmapSource BitmapToImageSource(Bitmap bitmap)
         {
             try
             {
@@ -185,7 +199,7 @@ namespace CheckInKiosk
             }
             catch (Exception ex)
             {
-                MessageBox.Show(UIMessages.FaceVerification.BitmapConversionErrorMessage(ex.Message));
+                LogError(string.Format(_logConfig.LogMessages.BitmapConversionErrorMessage, ex.Message));
                 return null;
             }
         }
@@ -199,7 +213,7 @@ namespace CheckInKiosk
 
                 WebcamFeed.Visibility = Visibility.Collapsed;
                 ShowLoadingOverlay();
-                VerificationMessage.Text = UIMessages.FaceVerification.IdentityVerificationInProgressMessage;
+                VerificationMessage.Text = _logConfig.LogMessages.IdentityVerificationInProgressMessage;
                 VerificationMessage.Visibility = Visibility.Visible;
                 CapturePhotoTitle.Visibility = Visibility.Collapsed;
                 MainContent.Visibility = Visibility.Collapsed;
@@ -210,7 +224,7 @@ namespace CheckInKiosk
 
                 if (capturedImage == null)
                 {
-                    MessageBox.Show(UIMessages.FaceVerification.CameraStartErrorMessage("Camera failed to capture an image."));
+                    LogError(string.Format(_logConfig.LogMessages.CameraStartErrorMessage, "Camera failed to capture an image."));
                     return;
                 }
 
@@ -253,7 +267,7 @@ namespace CheckInKiosk
                     {
                         Dispatcher.Invoke(() =>
                         {
-                            MessageBox.Show(UIMessages.FaceVerification.VerificationCancelMessage);
+                            LogError(_logConfig.LogMessages.VerificationCancelMessage);
                             HideLoadingOverlay();
                         });
                     }
@@ -261,7 +275,7 @@ namespace CheckInKiosk
                     {
                         Dispatcher.Invoke(() =>
                         {
-                            MessageBox.Show(UIMessages.FaceVerification.VerificationErrorMessage(ex.Message));
+                            LogError(string.Format(_logConfig.LogMessages.VerificationErrorMessage, ex.Message));
                             HideLoadingOverlay();
                         });
                     }
@@ -269,7 +283,7 @@ namespace CheckInKiosk
             }
             catch (Exception ex)
             {
-                MessageBox.Show(UIMessages.FaceVerification.CaptureVerifyErrorMessage(ex.Message));
+                LogError(string.Format(_logConfig.LogMessages.CaptureVerifyErrorMessage, ex.Message));
                 HideLoadingOverlay();
             }
         }
@@ -310,7 +324,7 @@ namespace CheckInKiosk
             }
             catch (Exception ex)
             {
-                throw new Exception(UIMessages.FaceVerification.VerificationApiErrorMessage(ex.Message));
+                throw new Exception(string.Format(_logConfig.LogMessages.VerificationApiErrorMessage, ex.Message));
             }
         }
 
@@ -336,7 +350,7 @@ namespace CheckInKiosk
             }
             catch (Exception ex)
             {
-                MessageBox.Show(UIMessages.FaceVerification.BitmapConversionErrorMessage(ex.Message));
+                LogError(string.Format(_logConfig.LogMessages.BitmapConversionErrorMessage, ex.Message));
                 return null;
             }
         }

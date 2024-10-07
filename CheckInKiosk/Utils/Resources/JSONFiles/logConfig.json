@@ -1,0 +1,42 @@
+{
+  "LogMessages": {
+    "ScanSuccess": "Scan completed successfully.",
+    "ScanFailure": "Scan failed. Reason: {0}",
+    "ErrorSelectingDocumentType": "Error selecting document type: {0}",
+    "ErrorProcessingDocumentType": "Error processing document type: {0}",
+    "UnexpectedError": "Unexpected error: {0}",
+    "RequestTimeout": "The request timed out. Please try again later.",
+    "NetworkError": "Network error occurred during document verification.",
+    "ParsingError": "Error parsing server response.",
+    "DocumentVerificationInProgress": "Verifying given details for {0}...",
+    "DocumentVerifiedSuccess": "Document verified successfully!",
+    "NoScannerFound": "No scanner device found.",
+    "ErrorDuringScanning": "Unexpected error during scanning: {0}",
+    "ErrorRestartingApplication": "Error restarting application: {0}",
+    "FaceCascadeErrorMessage": "Error loading face cascade: {0}",
+    "CameraNotFoundMessage": "Camera not found.",
+    "CameraStartErrorMessage": "Error starting camera: {0}",
+    "CameraStopErrorMessage": "Error stopping camera: {0}",
+    "NewFrameProcessingErrorMessage": "Error processing new frame: {0}",
+    "BitmapConversionErrorMessage": "Error converting bitmap: {0}",
+    "IdentityVerificationInProgressMessage": "Identity verification in progress...",
+    "CaptureVerifyErrorMessage": "Error during capture and verification: {0}",
+    "VerificationCancelMessage": "Verification has been canceled.",
+    "VerificationErrorMessage": "Error during verification: {0}",
+    "ErrorDuringHidingLoadingOverlay": "Error hiding loading overlay: {0}",
+    "ErrorDuringShowingLoadingOverlay": "Error showing loading overlay: {0}",
+    "VerificationApiErrorMessage": "API error during verification: {0}"
+  },
+  "APIEndpoints": {
+    "ValidateDocAPI": "api/DocumentScan/validate",
+    "FaceMatchingAPI": "api/FaceMatching/match"
+  },
+  "UIConstants": {
+    "ContentType": "application/json",
+    "EncryptionKey": "dA8L8+nF8D6e0a7H0a5lY3cFg+33r0H1LK4RmO5bI3I=",
+    "HaarcascadeFrontalfacePath": "haarcascade_frontalface_default.xml",
+    "DocumentTypePassport": "Passport",
+    "DocumentTypeVietnamID": "Vietnam ID",
+    "Filter": "Image files (*.jpg, *.jpeg, *.png)|*.jpg;*.jpeg;*.png"
+  }
+}
