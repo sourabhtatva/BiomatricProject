@@ -1,21 +1,20 @@
-﻿using BiometricAuthenticationAPI.Helpers.Constants;
-using BiometricAuthenticationAPI.Services.Interfaces;
+﻿using BiometricAuthenticationAPI.Services.Interfaces;
+
 
 namespace BiometricAuthenticationAPI.Services
 {
     public class VisionLabFaceService : IVisionLabFaceService
     {
-        private readonly FaceEngineWrapper _faceEngineWrapper;
+        private readonly FaceEngineWrapper _faceEngineWrapper = new FaceEngineWrapper();
 
         public VisionLabFaceService()
         {
             _faceEngineWrapper = new FaceEngineWrapper();
-            _faceEngineWrapper.InitializeEngine();
         }
 
-        public string GetDataDictionary()
+        public dynamic GetDataDictionary(string action)
         {
-            var response = _faceEngineWrapper.GetDataDirectory();
+            var response = _faceEngineWrapper.InitializeEngine(action);
             return response;
         }
 
