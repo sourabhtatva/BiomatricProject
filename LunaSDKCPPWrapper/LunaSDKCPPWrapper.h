@@ -29,11 +29,13 @@ public:
 	std::vector<unsigned char> Base64Decode(const std::string& encodedImageString);
 	void SavePPMFile(const std::string& filename, int width, int height, const std::vector<unsigned char>& data);
 	bool FaceEngineWrapper::ProcessingImage();
+	bool SimpleDetect(const std::string imagePath, fsdk::IDetector* faceDetector);
 
 private:
 	fsdk::IFaceEngine* m_faceEngine;
 	fsdk::ILicense* m_license;
 	fsdk::ISettingsProvider* m_settingsProvider;
+	fsdk::IDetector* m_detector;
 	String^ m_dataDirectory;
 	String^ m_configPath;
 	String^ m_licenseConfigPath;

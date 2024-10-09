@@ -38,7 +38,9 @@ namespace BiometricAuthenticationAPI.Controllers
 
                 //string response = _visionLabFaceService.GetDataDictionary("GetDataDirectory");
 
-                string response = _visionLabFaceService.GetDataDictionary("ProcessingImage");
+                //string response = _visionLabFaceService.GetDataDictionary("ProcessingImage");
+                
+                string response = _visionLabFaceService.GetDataDictionary("SimpleDetect");
 
                 return this.SuccessResult(response, Messages.FaceMatching.General.FaceMatchingMessage(_entityName));
             }

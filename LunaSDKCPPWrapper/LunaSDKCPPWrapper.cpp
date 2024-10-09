@@ -83,6 +83,13 @@ auto FaceEngineWrapper::InitializeEngine(String^ action)
 
 		if (IsActivated())
 		{
+			fsdk::ObjectDetectorClassType type;
+			auto detRes = m_faceEngine->createDetector(type);
+			if (detRes.isError()) {
+				std::cerr << "creationExample. Failed to create face detector instance." << detRes.what() << std::endl;
+			}
+			m_detector = detRes.getValue();
+
 			if (action == "GetDataDirectory")
 			{
 				auto dir = GetDataDirectory();
@@ -91,6 +98,11 @@ auto FaceEngineWrapper::InitializeEngine(String^ action)
 			if (action == "ProcessingImage")
 			{
 				bool status = ProcessingImage();
+				return status ? gcnew String("Processing successful") : gcnew String("Processing failed");
+			}
+			if (action == "SimpleDetect")
+			{
+				bool status = SimpleDetect("output_image.ppm", m_detector);
 				return status ? gcnew String("Processing successful") : gcnew String("Processing failed");
 			}
 		}
@@ -287,6 +299,138 @@ bool FaceEngineWrapper::ProcessingImage()
 	// Step 3: Save the image as a .ppm file
 	SavePPMFile("output_image.ppm", width, height, decoded_data);
 	
+	return true;
+}
+
+bool FaceEngineWrapper::SimpleDetect(const std::string imagePath, fsdk::IDetector* faceDetector) {
+
+	fsdk::Image image;
+
+	// Load the image using its path
+	if (!image.load(imagePath.c_str(), fsdk::Format::R8G8B8)) {
+		std::cerr << "Failed to load image: \"" << imagePath << "\"" << std::endl;
+		return false;  // Error occurred
+	}
+	// Scope here only to use a simple variables names (instead of resultBboxAndLandmarks5 of something like
+	// that).
+	{
+		// Detect one face on the one image.
+		// There is a helper method for such simple case: IDetector::detectOne.
+		// In case of several face on the image, result will contain only one face selected
+		// by default DetectionComparer (see IDetector::setDetectionComparer and
+		// IDetector::setCustomDetectionComparer methods).
+		fsdk::ResultValue<fsdk::FSDKError, fsdk::Face> result =
+			faceDetector->detectOne(image, image.getRect(), fsdk::DetectionType::DT_BBOX);
+		// Check an errors.
+		if (result.isError()) {
+			std::cerr << "simpleDetect. Failed to detect face bbox only. Reason: " << result.what() << std::endl;
+			return false;
+		}
+
+		const fsdk::Face& face = result.getValue();
+		// Check face
+		if (!face.isValid()) {
+			// If no any faces were found in the image, invalid face will be returned.
+			std::cerr << "simpleDetect. bbox only - no face!" << std::endl;
+			return false;
+		}
+
+		// Print result if success
+		const fsdk::Rect rect = face.detection.getRect();
+		const float score = face.detection.getScore();
+		std::cout << "simpleDetect. bbox only result:\nRect:\n\tx = ";
+		std::cout << rect.x << "\n\ty = " << rect.y << "\n\tw = " << rect.width << "\n\th = " << rect.height;
+		std::cout << "\n\tscore = " << score << std::endl;
+	}
+
+	// Scope here only to use a simple variables names (instead of resultBboxAndLandmarks5 of something like
+	// that).
+	{
+		// Now detect one face with Landmarks5. They are required for some estimators and warping
+		// (see FaceEngine Handbook for details)
+		fsdk::ResultValue<fsdk::FSDKError, fsdk::Face> result = faceDetector->detectOne(
+			image,
+			image.getRect(),
+			fsdk::DetectionType::DT_BBOX | fsdk::DetectionType::DT_LANDMARKS5);
+		// Check an error
+		if (result.isError()) {
+			std::cerr << "simpleDetect. Failed to detect face bbox with Landmarks5. Reason: " << result.what();
+			std::cerr << std::endl;
+			return false;
+		}
+
+		const fsdk::Face& face = result.getValue();
+		// Check face
+		if (!face.isValid()) {
+			// If no any faces were found in the image, invalid face will be returned.
+			std::cerr << "simpleDetect. bbox with Landmarks5 only - no face!" << std::endl;
+			return false;
+		}
+		// Print result if success
+		const fsdk::Rect rect = face.detection.getRect();
+		const float score = face.detection.getScore();
+		std::cout << "\nsimpleDetect. bbox and Landmarks5 result:\nRect:\n\tx = ";
+		std::cout << rect.x << "\n\ty = " << rect.y << "\n\tw = " << rect.width << "\n\th = " << rect.height;
+		std::cout << "\n\tscore = " << score << std::endl;
+
+		// Landmarks5 should be valid here
+		assert(face.landmarks5.valid());
+		std::cout << "Landmarks5:" << std::endl;
+		const fsdk::Landmarks5& landmarks5 = face.landmarks5.value();
+		// One note here - landmarks are in the bbox coordinates, so to print absolute values
+		// need to add bbox top-left point.
+		for (auto landmark : landmarks5.landmarks) {
+			std::cout << "\tx = " << static_cast<float>(rect.x) + landmark.x;
+			std::cout << " y = " << static_cast<float>(rect.y) + landmark.y << std::endl;
+		}
+	}
+
+	// Scope here only to use a simple variables names (instead of resultBboxAndLandmarks5And68 of something
+	// like that).
+	{
+		// And the last case - detect one face with Landmarks5 and Landmarks68. They are also required for some
+		// estimators and warping (see FaceEngine Handbook for details). Also fsdk::DetectionType::DT_ALL possible
+		fsdk::ResultValue<fsdk::FSDKError, fsdk::Face> result = faceDetector->detectOne(
+			image,
+			image.getRect(),
+			fsdk::DetectionType::DT_BBOX | fsdk::DetectionType::DT_LANDMARKS5 |
+			fsdk::DetectionType::DT_LANDMARKS68);
+
+		const fsdk::Face& face = result.getValue();
+		// Check face
+		if (!face.isValid()) {
+			// If no any faces were found in the image, invalid face will be returned.
+			std::cerr << "simpleDetect. bbox, Landmarks5 and Landmarks68 - no face!" << std::endl;
+			return false;
+		}
+		// Print result if success
+		const fsdk::Rect& rect = face.detection.getRect();
+		const float score = face.detection.getScore();
+		std::cout << "\nsimpleDetect. bbox, Landmarks5 and Landmarks68 result:\nRect:\n\tx = ";
+		std::cout << rect.x << "\n\ty = " << rect.y << "\n\tw = " << rect.width << "\n\th = " << rect.height;
+		std::cout << "\n\tscore = " << score << std::endl;
+
+		// Landmarks5 should be valid here
+		assert(face.landmarks5.valid());
+		std::cout << "Landmarks5:" << std::endl;
+		const fsdk::Landmarks5& landmarks5 = face.landmarks5.value();
+		// One note here - landmarks are in the bbox coordinates, so to print absolute values
+		// need to add bbox top-left point.
+		for (auto landmark : landmarks5.landmarks) {
+			std::cout << "\tx = " << static_cast<float>(rect.x) + landmark.x;
+			std::cout << " y = " << static_cast<float>(rect.y) + landmark.y << std::endl;
+		}
+
+		// Landmarks68 should be valid here
+		assert(face.landmarks68.valid());
+		std::cout << "Landmarks68:" << std::endl;
+		const fsdk::Landmarks68& landmarks68 = face.landmarks68.value();
+		for (auto landmark : landmarks68.landmarks) {
+			std::cout << "\tx = " << static_cast<float>(rect.x) + landmark.x;
+			std::cout << " y = " << static_cast<float>(rect.y) + landmark.y << std::endl;
+		}
+	}
+	std::cout << std::endl;
 	return true;
 }
 
