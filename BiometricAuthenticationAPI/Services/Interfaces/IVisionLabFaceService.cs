@@ -2,7 +2,7 @@
 {
     public interface IVisionLabFaceService
     {
-        dynamic GetDataDictionary(string action);
+        dynamic ExecuteAction(string action);
         bool GetLicenseActivated();
         string GetDefaultPath();
         bool CheckFeatureId(int featureId);

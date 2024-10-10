@@ -5,16 +5,16 @@ namespace BiometricAuthenticationAPI.Services
 {
     public class VisionLabFaceService : IVisionLabFaceService
     {
-        private readonly FaceEngineWrapper _faceEngineWrapper = new FaceEngineWrapper();
+        private readonly FaceEngineWrapper _faceEngineWrapper = new();
 
         public VisionLabFaceService()
         {
             _faceEngineWrapper = new FaceEngineWrapper();
         }
 
-        public dynamic GetDataDictionary(string action)
+        public dynamic ExecuteAction(string action)
         {
-            var response = _faceEngineWrapper.InitializeEngine(action);
+            var response = _faceEngineWrapper.ExecuteAction(action);
             return response;
         }
 

@@ -17,7 +17,7 @@ public:
 	~FaceEngineWrapper();
 	!FaceEngineWrapper();
 	bool IsEngineInitialized();
-	auto InitializeEngine(String^ action);
+	auto ExecuteAction(String^ action);
 	String^ GetDataDirectory();
 	bool CheckFeatureId(int featureId);
 	bool IsActivated();
@@ -28,8 +28,12 @@ public:
 	bool ActivateLicense();
 	std::vector<unsigned char> Base64Decode(const std::string& encodedImageString);
 	void SavePPMFile(const std::string& filename, int width, int height, const std::vector<unsigned char>& data);
-	bool FaceEngineWrapper::ProcessingImage();
-	bool SimpleDetect(const std::string imagePath, fsdk::IDetector* faceDetector);
+	bool ProcessingImage();
+	bool FaceDetection(fsdk::IDetector* faceDetector, const std::string imagePath);
+	bool CrowdEstimator(fsdk::IFaceEngine* faceEngine, const std::string imagePath);
+	bool GlassesEstimator(fsdk::IFaceEngine* faceEngine, const std::string& imagePath);
+	bool MedicalMaskEstimator(fsdk::IFaceEngine* faceEngine, const std::string& imagePath);
+	bool PPEEstimator(fsdk::IFaceEngine* faceEngine, const std::string& imagePath);
 
 private:
 	fsdk::IFaceEngine* m_faceEngine;

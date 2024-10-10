@@ -46,7 +46,7 @@ FaceEngineWrapper::!FaceEngineWrapper()
 }
 
 //Create InitializeEngine method that returns face engine object is initialized or not.
-auto FaceEngineWrapper::InitializeEngine(String^ action)
+auto FaceEngineWrapper::ExecuteAction(String^ action)
 {
 	std::string dataDirectory = DATA_DIC_DIR;
 	std::string configPath = dataDirectory + std::string(CONFIG_FILE_NAME);
@@ -83,7 +83,7 @@ auto FaceEngineWrapper::InitializeEngine(String^ action)
 
 		if (IsActivated())
 		{
-			fsdk::ObjectDetectorClassType type;
+			fsdk::ObjectDetectorClassType type{};
 			auto detRes = m_faceEngine->createDetector(type);
 			if (detRes.isError()) {
 				std::cerr << "creationExample. Failed to create face detector instance." << detRes.what() << std::endl;
@@ -100,10 +100,30 @@ auto FaceEngineWrapper::InitializeEngine(String^ action)
 				bool status = ProcessingImage();
 				return status ? gcnew String("Processing successful") : gcnew String("Processing failed");
 			}
-			if (action == "SimpleDetect")
+			if (action == "FaceDetection")
 			{
-				bool status = SimpleDetect("output_image.ppm", m_detector);
-				return status ? gcnew String("Processing successful") : gcnew String("Processing failed");
+				bool status = FaceDetection(m_detector, "output_image.ppm");
+				return status ? gcnew String("Image Detection Successful") : gcnew String("Image Detection Failed");
+			}
+			if (action == "CrowdEstimator")
+			{
+				bool status = CrowdEstimator(m_faceEngine, "output_image.ppm");
+				return status ? gcnew String("Crowd Estimation Successful") : gcnew String("Crowd Estimation Failed");
+			}
+			if (action == "GlassEstimator")
+			{
+				bool status = GlassesEstimator(m_faceEngine, "output_image.ppm");
+				return status ? gcnew String("Glass Estimation Successful") : gcnew String("Glass Estimation Failed");
+			}
+			if (action == "MedicalMaskEstimator")
+			{
+				bool status = MedicalMaskEstimator(m_faceEngine, "output_image.ppm");
+				return status ? gcnew String("Medical Mask Estimation Successful") : gcnew String("Medical Mask Estimation Failed");
+			}
+			if (action == "PPEEstimator")
+			{
+				bool status = PPEEstimator(m_faceEngine, "output_image.ppm");
+				return status ? gcnew String("PPE Estimation Successful") : gcnew String("PPE Estimation Failed");
 			}
 		}
 	}
@@ -217,6 +237,7 @@ String^ FaceEngineWrapper::GetDefaultPath()
 	return gcnew String(defaultPath);
 }
 
+//Create ActivateLicense method that activates the license.
 bool FaceEngineWrapper::ActivateLicense() {
 	try {
 		if (!IsEngineInitialized()) {
@@ -236,13 +257,12 @@ bool FaceEngineWrapper::ActivateLicense() {
 		return result.isOk();
 	}
 	catch (const std::exception& ex) {
-		// Log or handle the exception
-		Console::WriteLine("An error occurred in ActivateLicense: " + gcnew String(ex.what()));
+		std::cout << "An error occurred in ActivateLicense: " << ex.what() << std::endl;
 		return false;
 	}
 }
 
-// Base64 decoding function
+//Create Base64Decode method that decode the encoded input image string. 
 std::vector<unsigned char> FaceEngineWrapper::Base64Decode(const std::string& encodedImageString) {
 	std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 		"abcdefghijklmnopqrstuvwxyz"
@@ -264,7 +284,7 @@ std::vector<unsigned char> FaceEngineWrapper::Base64Decode(const std::string& en
 	return decodedImageString;
 }
 
-// Save PPM file
+//Create SavePPMFile method that creates the ppm file format image.
 void FaceEngineWrapper::SavePPMFile(const std::string& filename, int width, int height, const std::vector<unsigned char>& data) {
 	std::ofstream file(filename, std::ios::binary);
 
@@ -283,26 +303,25 @@ void FaceEngineWrapper::SavePPMFile(const std::string& filename, int width, int 
 	std::cout << "Image saved as: " << filename << std::endl;
 }
 
+//Create ProcessingImage method that process the ppm image and create ppm image file.
 bool FaceEngineWrapper::ProcessingImage()
 {
 	std::string base64Image = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAAOCAMAAAD+MweGAAADAFBMVEUAAAAAAFUAAKoAAP8AJAAAJFUAJKoAJP8ASQAASVUASaoASf8AbQAAbVUAbaoAbf8AkgAAklUAkqoAkv8AtgAAtlUAtqoAtv8A2wAA21UA26oA2/8A/wAA/1UA/6oA//8kAAAkAFUkAKokAP8kJAAkJFUkJKokJP8kSQAkSVUkSaokSf8kbQAkbVUkbaokbf8kkgAkklUkkqokkv8ktgAktlUktqoktv8k2wAk21Uk26ok2/8k/wAk/1Uk/6ok//9JAABJAFVJAKpJAP9JJABJJFVJJKpJJP9JSQBJSVVJSapJSf9JbQBJbVVJbapJbf9JkgBJklVJkqpJkv9JtgBJtlVJtqpJtv9J2wBJ21VJ26pJ2/9J/wBJ/1VJ/6pJ//9tAABtAFVtAKptAP9tJABtJFVtJKptJP9tSQBtSVVtSaptSf9tbQBtbVVtbaptbf9tkgBtklVtkqptkv9ttgBttlVttqpttv9t2wBt21Vt26pt2/9t/wBt/1Vt/6pt//+SAACSAFWSAKqSAP+SJACSJFWSJKqSJP+SSQCSSVWSSaqSSf+SbQCSbVWSbaqSbf+SkgCSklWSkqqSkv+StgCStlWStqqStv+S2wCS21WS26qS2/+S/wCS/1WS/6qS//+2AAC2AFW2AKq2AP+2JAC2JFW2JKq2JP+2SQC2SVW2Saq2Sf+2bQC2bVW2baq2bf+2kgC2klW2kqq2kv+2tgC2tlW2tqq2tv+22wC221W226q22/+2/wC2/1W2/6q2///bAADbAFXbAKrbAP/bJADbJFXbJKrbJP/bSQDbSVXbSarbSf/bbQDbbVXbbarbbf/bkgDbklXbkqrbkv/btgDbtlXbtqrbtv/b2wDb21Xb26rb2//b/wDb/1Xb/6rb////AAD/AFX/AKr/AP//JAD/JFX/JKr/JP//SQD/SVX/Sar/Sf//bQD/bVX/bar/bf//kgD/klX/kqr/kv//tgD/tlX/tqr/tv//2wD/21X/26r/2////wD//1X//6r////qm24uAAAA1ElEQVR42h1PMW4CQQwc73mlFJGCQChFIp0Rh0RBGV5AFUXKC/KPfCFdqryEgoJ8IX0KEF64q0PPnow3jT2WxzNj+gAgAGfvvDdCQIHoSnGYcGDE2nH92DoRqTYJ2bTcsKgqhIi47VdgAWNmwFSFA1UAAT2sSFcnq8a3x/zkkJrhaHT3N+hD3aH7ZuabGHX7bsSMhxwTJLr3evf1e0nBVcwmqcTZuatKoJaB7dSHjTZdM0G1HBTWefly//q2EB7/BEvk5vmzeQaJ7/xKPImpzv8/s4grhAxHl0DsqGUAAAAASUVORK5CYII=";
-	
+
 	const std::string base64Data = base64Image.substr(base64Image.find(",") + 1);
 
-	// Step 1: Decode the base64 string
 	std::vector<unsigned char> decoded_data = Base64Decode(base64Data);
 
-	// Step 2: Define image dimensions (width and height)
-	int width = 300;  // Replace with the actual width of the image
-	int height = 200; // Replace with the actual height of the image
+	int width = 300;
+	int height = 200;
 
-	// Step 3: Save the image as a .ppm file
 	SavePPMFile("output_image.ppm", width, height, decoded_data);
-	
+
 	return true;
 }
 
-bool FaceEngineWrapper::SimpleDetect(const std::string imagePath, fsdk::IDetector* faceDetector) {
+
+bool FaceEngineWrapper::FaceDetection(fsdk::IDetector* faceDetector, const std::string imagePath) {
 
 	fsdk::Image image;
 
@@ -323,7 +342,7 @@ bool FaceEngineWrapper::SimpleDetect(const std::string imagePath, fsdk::IDetecto
 			faceDetector->detectOne(image, image.getRect(), fsdk::DetectionType::DT_BBOX);
 		// Check an errors.
 		if (result.isError()) {
-			std::cerr << "simpleDetect. Failed to detect face bbox only. Reason: " << result.what() << std::endl;
+			std::cerr << "Detection. Failed to detect face bbox only. Reason: " << result.what() << std::endl;
 			return false;
 		}
 
@@ -331,14 +350,14 @@ bool FaceEngineWrapper::SimpleDetect(const std::string imagePath, fsdk::IDetecto
 		// Check face
 		if (!face.isValid()) {
 			// If no any faces were found in the image, invalid face will be returned.
-			std::cerr << "simpleDetect. bbox only - no face!" << std::endl;
+			std::cerr << "Detection. bbox only - no face!" << std::endl;
 			return false;
 		}
 
 		// Print result if success
 		const fsdk::Rect rect = face.detection.getRect();
 		const float score = face.detection.getScore();
-		std::cout << "simpleDetect. bbox only result:\nRect:\n\tx = ";
+		std::cout << "Detection. bbox only result:\nRect:\n\tx = ";
 		std::cout << rect.x << "\n\ty = " << rect.y << "\n\tw = " << rect.width << "\n\th = " << rect.height;
 		std::cout << "\n\tscore = " << score << std::endl;
 	}
@@ -354,7 +373,7 @@ bool FaceEngineWrapper::SimpleDetect(const std::string imagePath, fsdk::IDetecto
 			fsdk::DetectionType::DT_BBOX | fsdk::DetectionType::DT_LANDMARKS5);
 		// Check an error
 		if (result.isError()) {
-			std::cerr << "simpleDetect. Failed to detect face bbox with Landmarks5. Reason: " << result.what();
+			std::cerr << "Detection. Failed to detect face bbox with Landmarks5. Reason: " << result.what();
 			std::cerr << std::endl;
 			return false;
 		}
@@ -363,13 +382,13 @@ bool FaceEngineWrapper::SimpleDetect(const std::string imagePath, fsdk::IDetecto
 		// Check face
 		if (!face.isValid()) {
 			// If no any faces were found in the image, invalid face will be returned.
-			std::cerr << "simpleDetect. bbox with Landmarks5 only - no face!" << std::endl;
+			std::cerr << "Detection. bbox with Landmarks5 only - no face!" << std::endl;
 			return false;
 		}
 		// Print result if success
 		const fsdk::Rect rect = face.detection.getRect();
 		const float score = face.detection.getScore();
-		std::cout << "\nsimpleDetect. bbox and Landmarks5 result:\nRect:\n\tx = ";
+		std::cout << "\nDetection. bbox and Landmarks5 result:\nRect:\n\tx = ";
 		std::cout << rect.x << "\n\ty = " << rect.y << "\n\tw = " << rect.width << "\n\th = " << rect.height;
 		std::cout << "\n\tscore = " << score << std::endl;
 
@@ -400,13 +419,13 @@ bool FaceEngineWrapper::SimpleDetect(const std::string imagePath, fsdk::IDetecto
 		// Check face
 		if (!face.isValid()) {
 			// If no any faces were found in the image, invalid face will be returned.
-			std::cerr << "simpleDetect. bbox, Landmarks5 and Landmarks68 - no face!" << std::endl;
+			std::cerr << "Detection. bbox, Landmarks5 and Landmarks68 - no face!" << std::endl;
 			return false;
 		}
 		// Print result if success
 		const fsdk::Rect& rect = face.detection.getRect();
 		const float score = face.detection.getScore();
-		std::cout << "\nsimpleDetect. bbox, Landmarks5 and Landmarks68 result:\nRect:\n\tx = ";
+		std::cout << "\nDetection. bbox, Landmarks5 and Landmarks68 result:\nRect:\n\tx = ";
 		std::cout << rect.x << "\n\ty = " << rect.y << "\n\tw = " << rect.width << "\n\th = " << rect.height;
 		std::cout << "\n\tscore = " << score << std::endl;
 
@@ -434,8 +453,217 @@ bool FaceEngineWrapper::SimpleDetect(const std::string imagePath, fsdk::IDetecto
 	return true;
 }
 
+bool FaceEngineWrapper::CrowdEstimator(fsdk::IFaceEngine* faceEngine, const std::string imagePath) {
+	
+	std::cout << "crowdEstimator start" << std::endl;
 
-//Create ConvertStringToStdString method that converts string into std::string format.
+	fsdk::Image image;
+
+	// Load the image using its path
+	if (!image.load(imagePath.c_str(), fsdk::Format::R8G8B8)) {
+		std::cerr << "Failed to load image: \"" << imagePath << "\"" << std::endl;
+		return false;  // Error occurred
+	}
+
+	// Get the settings provider from the face engine
+	fsdk::ISettingsProvider* config = faceEngine->getSettingsProvider();
+	if (!config) {
+		std::cerr << "Failed to get settings provider instance." << std::endl;
+		return false;
+	}
+
+	// Set the required minHeadSize (30 means 1/10 resize)
+	config->setValue("CrowdEstimator::Settings", "minHeadSize", 30);
+
+	// Create crowd estimator with default working mode from config
+	auto resCrowEstimator = faceEngine->createCrowdEstimator();
+	if (resCrowEstimator.isError()) {
+		std::cerr << "Failed to create crowd estimator instance with default mode. Reason: ";
+		std::cerr << resCrowEstimator.what() << std::endl;
+		return false;
+	}
+	fsdk::ICrowdEstimatorPtr crowdEstimator = resCrowEstimator.getValue();
+
+	// Use only a single image and its corresponding rect
+	fsdk::Rect rect = image.getRect();
+
+	// Prepare a single estimation output
+	fsdk::CrowdEstimation estimation;
+
+	// Make the estimation for the single image and rect
+	auto result = crowdEstimator->estimate(image, rect, estimation);
+	if (result.isError()) {
+		std::cerr << "crowdEstimatorExample - failed to make estimation! Error: " << result.what() << std::endl;
+		return false;
+	}
+
+	// Print the result of the estimation
+	std::cout << "crowdEstimatorExample - estimation:" << std::endl;
+	std::cout << "\tcount: " << estimation.count << std::endl;
+	return true;
+}
+
+bool FaceEngineWrapper::GlassesEstimator(fsdk::IFaceEngine* faceEngine, const std::string& imagePath) {
+	std::cout << "Glasses Estimator start" << std::endl;
+
+	// Load the image from the provided path
+	fsdk::Image image;
+	if (!image.load(imagePath.c_str(), fsdk::Format::R8G8B8)) {
+		std::cerr << "Failed to load image: \"" << imagePath << "\"" << std::endl;
+		return false;
+	}
+
+	auto resGlassesEstimator = faceEngine->createGlassesEstimator();
+	if (resGlassesEstimator.isError()) {
+		std::cerr << "Failed to create glasses estimator. Reason: " << resGlassesEstimator.what() << std::endl;
+		return false;
+	}
+	fsdk::IGlassesEstimator* glassesEstimator = resGlassesEstimator.getValue();
+
+	// Estimate glasses from the detected human face in the image
+	fsdk::ResultValue<fsdk::FSDKError, fsdk::GlassesEstimation> glassesEstimationResult = glassesEstimator->estimate(image);
+	if (glassesEstimationResult.isError()) {
+		std::cerr << "Failed glasses estimation. Reason: " << glassesEstimationResult.what() << std::endl;
+		return false;
+	}
+
+	// Retrieve and print the glasses estimation result
+	fsdk::GlassesEstimation glassesEstimation = glassesEstimationResult.getValue();
+	if (glassesEstimationResult.isOk()) {
+		glassesEstimation = glassesEstimationResult.getValue();
+		std::cout << "\nGlasses estimate:";
+		std::cout << "\nglassesEstimation: " << static_cast<int>(glassesEstimation);
+		std::cout << " (0 - no glasses, 1 - eye glasses, 2 - sunglasses, 3 - glasses estimation error)";
+		std::cout << std::endl;
+	}
+	else {
+		std::cerr << "Failed glasses estimation. Reason: " << glassesEstimationResult.what() << std::endl;
+	}
+
+	return true;
+}
+
+bool FaceEngineWrapper::MedicalMaskEstimator(fsdk::IFaceEngine* faceEngine, const std::string& imagePath) {
+	std::cout << "Medical Mask Estimator start" << std::endl;
+
+	// Load the image from the provided path
+	fsdk::Image image;
+	if (!image.load(imagePath.c_str(), fsdk::Format::R8G8B8)) {
+		std::cerr << "Failed to load image: \"" << imagePath << "\"" << std::endl;
+		return false;
+	}
+
+	// Get the medical mask estimator from the face engine
+	auto resMedicalMaskEstimator = faceEngine->createMedicalMaskEstimator();
+	if (resMedicalMaskEstimator.isError()) {
+		std::cerr << "Failed to create medical mask estimator. Reason: " << resMedicalMaskEstimator.what() << std::endl;
+		return false;
+	}
+	fsdk::IMedicalMaskEstimatorPtr medicalMaskEstimator = resMedicalMaskEstimator.getValue();
+
+	fsdk::Rect rect = image.getRect();
+	fsdk::Detection detection{ rect };
+
+	// Perform extended medical mask estimation
+	fsdk::MedicalMaskEstimationExtended medicalMaskEstimationExtended{};
+	auto medicalMaskEstimationExtendedResult = medicalMaskEstimator->estimate(image, detection, medicalMaskEstimationExtended);
+	if (medicalMaskEstimationExtendedResult.isError()) {
+		std::cerr << "Medical Mask estimation error. Reason: " << medicalMaskEstimationExtendedResult.what() << std::endl;
+		return false;
+	}
+
+	// Print the result
+	std::cout << "\nMedical Mask extended estimation:";
+	std::cout << "\nMask score: " << medicalMaskEstimationExtended.maskScore;
+	std::cout << "\nNo mask score: " << medicalMaskEstimationExtended.noMaskScore;
+	std::cout << "\nMask not in place score: " << medicalMaskEstimationExtended.maskNotInPlace;
+	std::cout << "\nOccluded face score: " << medicalMaskEstimationExtended.occludedFaceScore << std::endl;
+
+	return true;
+}
+
+bool FaceEngineWrapper::PPEEstimator(fsdk::IFaceEngine* faceEngine, const std::string& imagePath) {
+	std::cout << "PPE Estimator start" << std::endl;
+
+	// Load the image from the provided path
+	fsdk::Image image;
+	if (!image.load(imagePath.c_str(), fsdk::Format::R8G8B8)) {
+		std::cerr << "Failed to load image: \"" << imagePath << "\"" << std::endl;
+		return false;
+	}
+
+	// Create Human Detector
+	auto resHumanDetector = faceEngine->createHumanDetector();
+	if (resHumanDetector.isError()) {
+		std::cerr << "Failed to create human detector. Reason: " << resHumanDetector.what() << std::endl;
+		return false;
+	}
+	fsdk::IHumanDetectorPtr humanDetector = resHumanDetector.getValue();
+
+	// Create PPE Estimator
+	auto resPPEEstimator = faceEngine->createPPEEstimator();
+	if (resPPEEstimator.isError()) {
+		std::cerr << "Failed to create PPE estimator. Reason: " << resPPEEstimator.what() << std::endl;
+		return false;
+	}
+	fsdk::IPPEEstimatorPtr ppeEstimator = resPPEEstimator.getValue();
+
+	// Use the whole image as the region of interest
+	const fsdk::Rect ROI = image.getRect();
+
+	// Detect humans in the image
+	auto humanDetStatus = humanDetector->detect(
+		fsdk::Span<const fsdk::Image>(&image, 1),
+		fsdk::Span<const fsdk::Rect>(&ROI, 1),
+		1 // Detect only one human
+	);
+
+	if (humanDetStatus.isError()) {
+		std::cerr << "Failed to detect human in the image. Reason: " << humanDetStatus.what() << std::endl;
+		return false;
+	}
+
+	const fsdk::Span<const fsdk::Detection>& humanCrops = humanDetStatus.getValue()->getDetections();
+	if (humanCrops.empty()) {
+		std::clog << "No human detected in the image." << std::endl;
+		return false;
+	}
+
+	// Estimate PPE for the detected human
+	const auto& humanCrop = humanCrops[0]; // Using the first detected human
+	auto estimatorStatus = ppeEstimator->estimate(image, humanCrop);
+	if (estimatorStatus.isError()) {
+		std::cerr << "Failed to estimate PPE! Reason: " << estimatorStatus.what() << std::endl;
+		return false;
+	}
+
+	// Retrieve and print PPE estimation result
+	fsdk::PPEEstimation result = estimatorStatus.getValue();
+	std::cout << "PPE Estimation Result:\n";
+	std::cout << "Helmet estimation:\n";
+	std::cout << "\t positive: " << result.helmetEstimation.positive << "\n";
+	std::cout << "\t negative: " << result.helmetEstimation.negative << "\n";
+	std::cout << "\t unknown:  " << result.helmetEstimation.unknown << "\n";
+
+	std::cout << "Hood estimation:\n";
+	std::cout << "\t positive: " << result.hoodEstimation.positive << "\n";
+	std::cout << "\t negative: " << result.hoodEstimation.negative << "\n";
+	std::cout << "\t unknown: " << result.hoodEstimation.unknown << "\n";
+
+	std::cout << "Vest estimation:\n";
+	std::cout << "\t positive: " << result.vestEstimation.positive << "\n";
+	std::cout << "\t negative: " << result.vestEstimation.negative << "\n";
+	std::cout << "\t unknown: " << result.vestEstimation.unknown << "\n";
+
+	std::cout << "Gloves estimation:\n";
+	std::cout << "\t positive: " << result.glovesEstimation.positive << "\n";
+	std::cout << "\t negative: " << result.glovesEstimation.negative << "\n";
+	std::cout << "\t unknown: " << result.glovesEstimation.unknown << std::endl;
+
+	return true;
+}
+
+//Create ConvertStringToStdString method that converts managed code string into unmanaged code string.
 std::string FaceEngineWrapper::ConvertStringToStdString(String^ managedString)
 {
 	IntPtr pString = Marshal::StringToHGlobalAnsi(managedString);

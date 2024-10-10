@@ -14,21 +14,10 @@ namespace BiometricAuthenticationAPI.Controllers
         private readonly string _entityName = "Test";
 
         [HttpGet]
-        public IActionResult CreateFaceDetectionBatchEndpoint()
+        public IActionResult TestEndPoint()
         {
             try
             {
-                //if (!ModelState.IsValid)
-                //{
-                //    throw new DataValidationException(ModelState);
-                //}
-
-                //FaceVerifyResponse? response = await _faceMatchService.MatchFace(request);
-                //visionLabFaceService.InitializeAndDetectFaces();
-
-                //byte[] bytes = new byte[1];
-
-                //int response = _visionLabFaceService.DetectFaces(bytes);
 
                 //bool response = _visionLabFaceService.CheckFeatureId(1);
 
@@ -36,11 +25,19 @@ namespace BiometricAuthenticationAPI.Controllers
 
                 //string response = _visionLabFaceService.GetDefaultPath();
 
-                //string response = _visionLabFaceService.GetDataDictionary("GetDataDirectory");
+                //string response = _visionLabFaceService.ExecuteAction("GetDataDirectory");
 
-                //string response = _visionLabFaceService.GetDataDictionary("ProcessingImage");
-                
-                string response = _visionLabFaceService.GetDataDictionary("SimpleDetect");
+                //string response = _visionLabFaceService.ExecuteAction("ProcessingImage");
+
+                //string response = _visionLabFaceService.ExecuteAction("FaceDetection");
+
+                //string response = _visionLabFaceService.ExecuteAction("CrowdEstimator");
+
+                //string response = _visionLabFaceService.ExecuteAction("GlassEstimator");
+
+                //string response = _visionLabFaceService.ExecuteAction("MedicalMaskEstimator");
+
+                string response = _visionLabFaceService.ExecuteAction("PPEEstimator");
 
                 return this.SuccessResult(response, Messages.FaceMatching.General.FaceMatchingMessage(_entityName));
             }
