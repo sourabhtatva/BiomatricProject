@@ -1,6 +1,7 @@
 #pragma once
 #include "pch.h"
 #include "LunaSDKCPPWrapper.h"
+#include "NativeFaceEngineHelper.h"
 #include "Constants.h"
 #include <fsdk/FaceEngine.h>
 #include <fsdk/ILicense.h>
@@ -320,7 +321,7 @@ bool FaceEngineWrapper::ProcessingImage()
 	return true;
 }
 
-
+//Create a method called FaceDetection that detects a face in the given image.
 bool FaceEngineWrapper::FaceDetection(fsdk::IDetector* faceDetector, const std::string imagePath) {
 
 	fsdk::Image image;
@@ -453,6 +454,7 @@ bool FaceEngineWrapper::FaceDetection(fsdk::IDetector* faceDetector, const std::
 	return true;
 }
 
+//Create a method called CrowdEstimator that detects if a crowd is present in the given image
 bool FaceEngineWrapper::CrowdEstimator(fsdk::IFaceEngine* faceEngine, const std::string imagePath) {
 	
 	std::cout << "crowdEstimator start" << std::endl;
@@ -503,6 +505,7 @@ bool FaceEngineWrapper::CrowdEstimator(fsdk::IFaceEngine* faceEngine, const std:
 	return true;
 }
 
+//Create a method called GlassesEstimator that checks if the person in the provided image is wearing glasses.
 bool FaceEngineWrapper::GlassesEstimator(fsdk::IFaceEngine* faceEngine, const std::string& imagePath) {
 	std::cout << "Glasses Estimator start" << std::endl;
 
@@ -543,6 +546,7 @@ bool FaceEngineWrapper::GlassesEstimator(fsdk::IFaceEngine* faceEngine, const st
 	return true;
 }
 
+//Create a method called MedicalMaskEstimator that checks if the person in the provided image is wearing medical mask.
 bool FaceEngineWrapper::MedicalMaskEstimator(fsdk::IFaceEngine* faceEngine, const std::string& imagePath) {
 	std::cout << "Medical Mask Estimator start" << std::endl;
 
@@ -582,6 +586,7 @@ bool FaceEngineWrapper::MedicalMaskEstimator(fsdk::IFaceEngine* faceEngine, cons
 	return true;
 }
 
+//Create a method called PPEEstimator that checks if the person in the provided image is wearing any protective equipment.
 bool FaceEngineWrapper::PPEEstimator(fsdk::IFaceEngine* faceEngine, const std::string& imagePath) {
 	std::cout << "PPE Estimator start" << std::endl;
 
@@ -662,6 +667,12 @@ bool FaceEngineWrapper::PPEEstimator(fsdk::IFaceEngine* faceEngine, const std::s
 
 	return true;
 }
+
+//Create a method called AttributeEstimator that returns basic attributes for ex: age, gender and ethnicity of the person in the provided image.
+bool FaceEngineWrapper::AttributeEstimator(fsdk::IFaceEngine* faceEngine, const std::string& imagePath) {
+	return NativeFaceEngineHelper::AttributeEstimator(faceEngine, imagePath);
+}
+
 
 //Create ConvertStringToStdString method that converts managed code string into unmanaged code string.
 std::string FaceEngineWrapper::ConvertStringToStdString(String^ managedString)

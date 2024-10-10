@@ -34,6 +34,7 @@ public:
 	bool GlassesEstimator(fsdk::IFaceEngine* faceEngine, const std::string& imagePath);
 	bool MedicalMaskEstimator(fsdk::IFaceEngine* faceEngine, const std::string& imagePath);
 	bool PPEEstimator(fsdk::IFaceEngine* faceEngine, const std::string& imagePath);
+	bool AttributeEstimator(fsdk::IFaceEngine* faceEngine, const std::string& imagePath);
 
 private:
 	fsdk::IFaceEngine* m_faceEngine;
