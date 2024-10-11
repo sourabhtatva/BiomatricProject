@@ -5,4 +5,6 @@
 class NativeFaceEngineHelper {
 public:
     static bool AttributeEstimator(fsdk::IFaceEngine* faceEngine, const std::string& imagePath);
+    static bool BestShotQualityEstimation(fsdk::IFaceEngine* faceEngine, const std::string& imagePath);
+    static bool CredibilityEstimator(fsdk::IFaceEngine* faceEngine, const std::string& imagePath);
 };

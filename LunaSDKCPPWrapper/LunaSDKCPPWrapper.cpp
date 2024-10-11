@@ -126,6 +126,46 @@ auto FaceEngineWrapper::ExecuteAction(String^ action)
 				bool status = PPEEstimator(m_faceEngine, "output_image.ppm");
 				return status ? gcnew String("PPE Estimation Successful") : gcnew String("PPE Estimation Failed");
 			}
+			if (action == "HumanDetection")
+			{
+				bool status = HumanDetection("output_image.ppm", m_faceEngine);
+				return status ? gcnew String("Processing Human Detection successful") : gcnew String("Processing Human Detection failed");
+			}
+			if (action == "AttributeEstimator")
+			{
+				bool status = AttributeEstimator(m_faceEngine, "output_image.ppm");
+				return status ? gcnew String("Processing attribute estimator successful") : gcnew String("Processing attribute estimator failed");
+			}
+			if (action == "CredibilityEstimator")
+			{
+				bool status = CredibilityEstimator(m_faceEngine, "output_image.ppm");
+				return status ? gcnew String("Processing Credibility Estimator successful") : gcnew String("Processing Credibility Estimator failed");
+			}
+			if (action == "QualityEstimator")
+			{
+				bool status = QualityEstimator(m_faceEngine, "output_image.ppm");
+				return status ? gcnew String("Processing Quality Estimator successful") : gcnew String("Processing Quality Estimator failed");
+			}
+			if (action == "SubjectiveQualityEstimation")
+			{
+				bool status = SubjectiveQualityEstimation(m_faceEngine, "output_image.ppm");
+				return status ? gcnew String("Processing Subjective Quality Estimation successful") : gcnew String("Processing Subjective Quality Estimation failed");
+			}
+			if (action == "OverlapEstimation")
+			{
+				bool status = OverlapEstimation(m_faceEngine, "output_image.ppm");
+				return status ? gcnew String("Processing Overlap Estimation successful") : gcnew String("Processing Overlap Estimation failed");
+			}
+			if (action == "BestShotQualityEstimation")
+			{
+				bool status = BestShotQualityEstimation(m_faceEngine, "output_image.ppm");
+				return status ? gcnew String("Processing BestShot Quality Estimation successful") : gcnew String("Processing BestShot Quality Estimation failed");
+			}
+			if (action == "EyesEstimation")
+			{
+				bool status = EyesEstimation(m_faceEngine, "output_image.ppm");
+				return status ? gcnew String("Processing Eyes Estimation successful") : gcnew String("Processing Eyes Estimation failed");
+			}
 		}
 	}
 	return action;
@@ -671,6 +711,207 @@ bool FaceEngineWrapper::PPEEstimator(fsdk::IFaceEngine* faceEngine, const std::s
 //Create a method called AttributeEstimator that returns basic attributes for ex: age, gender and ethnicity of the person in the provided image.
 bool FaceEngineWrapper::AttributeEstimator(fsdk::IFaceEngine* faceEngine, const std::string& imagePath) {
 	return NativeFaceEngineHelper::AttributeEstimator(faceEngine, imagePath);
+}
+
+bool FaceEngineWrapper::BestShotQualityEstimation(fsdk::IFaceEngine * faceEngine, const std::string & imagePath) {
+	return NativeFaceEngineHelper::BestShotQualityEstimation(faceEngine, imagePath);
+}
+
+bool FaceEngineWrapper::CredibilityEstimator(fsdk::IFaceEngine* faceEngine, const std::string& imagePath) {
+	return NativeFaceEngineHelper::CredibilityEstimator(faceEngine, imagePath);
+}
+
+bool FaceEngineWrapper::HumanDetection(
+	const std::string& imagePath,
+	fsdk::IFaceEngine* faceEngine) {
+
+	// Load the primary image
+	fsdk::Image image;
+	if (!image.load(imagePath.c_str(), fsdk::Format::R8G8B8)) {
+		std::cerr << "Failed to load image: \"" << imagePath << "\"" << std::endl;
+		return false;  // Error occurred
+	}
+
+	// Define a rectangle for the image (could be modified as needed)
+	fsdk::Rect rect = image.getRect();
+
+	// Create human detector
+	auto humanDetectorRes = faceEngine->createHumanDetector();
+	if (humanDetectorRes.isError()) {
+		std::cerr << "Failed to create human detector. Reason: " << humanDetectorRes.what() << std::endl;
+		return false;
+	}
+	fsdk::IHumanDetectorPtr humanDetector = humanDetectorRes.getValue();
+
+	// Perform single human detection
+	auto resHumanOne = humanDetector->detectOne(image, rect);
+	if (resHumanOne.isError()) {
+		std::cerr << "Failed to detect human! Reason: " << resHumanOne.what() << std::endl;
+		return false;
+	}
+	fsdk::Human humanOne = resHumanOne.getValue();
+
+	// Output detected results
+	const fsdk::Rect rectOne = humanOne.detection.getRect();
+	std::cout << "Detect results:\n\tRect: (" << rectOne.x << ", " << rectOne.y << ") "
+		<< "Width: " << rectOne.width << ", Height: " << rectOne.height
+		<< "\n\tScore: " << humanOne.detection.getScore() << std::endl;
+
+	return true;
+}
+
+
+bool FaceEngineWrapper::QualityEstimator(fsdk::IFaceEngine* faceEngine, const std::string imagePath) {
+
+	fsdk::Image warp;
+	if (!warp.load(imagePath.c_str(), fsdk::Format::R8G8B8)) {
+		std::cerr << "Failed to load image: \"" << imagePath << "\"" << std::endl;
+		return false;  // Error occurred
+	}
+
+	// Create quality estimator
+	auto resQualityEstimator = faceEngine->createQualityEstimator();
+	if (!resQualityEstimator) {
+		std::cerr << "Failed to create quality estimator instance. Reason: " << resQualityEstimator.what();
+		std::cerr << std::endl;
+		return false;
+	}
+	fsdk::IQualityEstimatorPtr qualityEstimator = resQualityEstimator.getValue();
+
+	// Get quality estimation.
+	fsdk::Quality qualityEstimation{};
+	fsdk::Result<fsdk::FSDKError> qualityEstimationResult =
+		qualityEstimator->estimate(warp, qualityEstimation);
+	if (qualityEstimationResult.isOk()) {
+		std::cout << "Quality estimation :";
+		std::cout << "\nlight score: " << qualityEstimation.light << "\ndark score:  ";
+		std::cout << qualityEstimation.dark << "\ngray score:  " << qualityEstimation.gray;
+		std::cout << "\nblur score:  " << qualityEstimation.blur;
+		std::cout << "\noverall quality score:  " << qualityEstimation.getQuality() << std::endl;
+		std::cout << std::endl;
+	}
+	else {
+		std::cerr << "Failed to make quality estimation. Reason: " << qualityEstimationResult.what();
+		std::cerr << std::endl;
+		return false;
+	}
+	return true;
+}
+
+bool FaceEngineWrapper::SubjectiveQualityEstimation(fsdk::IFaceEngine* faceEngine, const std::string imagePath) {
+
+	fsdk::Image warp;
+	if (!warp.load(imagePath.c_str(), fsdk::Format::R8G8B8)) {
+		std::cerr << "Failed to load image: \"" << imagePath << "\"" << std::endl;
+		return false;  // Error occurred
+	}
+
+	// Create quality estimator
+	auto resQualityEstimator = faceEngine->createQualityEstimator();
+	if (!resQualityEstimator) {
+		std::cerr << "Failed to create quality estimator instance. Reason: " << resQualityEstimator.what();
+		std::cerr << std::endl;
+		return false;
+	}
+	fsdk::IQualityEstimatorPtr qualityEstimator = resQualityEstimator.getValue();
+
+	// Get subjective quality estimation.
+	fsdk::SubjectiveQuality subjectiveQualityEstimation{};
+	fsdk::Result<fsdk::FSDKError> subjectiveQualityEstimationResult =
+		qualityEstimator->estimate(warp, subjectiveQualityEstimation);
+	if (subjectiveQualityEstimationResult.isOk()) {
+		std::cout << "Subjective Quality estimation:";
+		std::cout << "\nisBlurred:     " << subjectiveQualityEstimation.isBlurred;
+		std::cout << "\nisHighlighted: " << subjectiveQualityEstimation.isHighlighted;
+		std::cout << "\nisDark:        " << subjectiveQualityEstimation.isDark;
+		std::cout << "\nisIlluminated: " << subjectiveQualityEstimation.isIlluminated;
+		std::cout << "\nisNotSpecular: " << subjectiveQualityEstimation.isNotSpecular << "\ntotal quality: ";
+		std::cout << subjectiveQualityEstimation.isGood() << " (true - good, false - is low)" << std::endl;
+		std::cout << std::endl;
+	}
+	else {
+		std::cerr << "Failed to make subjective quality estimation. Reason: ";
+		std::cerr << subjectiveQualityEstimationResult.what() << std::endl;
+		return false;
+	}
+	return true;
+}
+
+bool FaceEngineWrapper::EyesEstimation(fsdk::IFaceEngine* faceEngine, const std::string& imagePath) {
+
+	fsdk::Image warp;
+	if (!warp.load(imagePath.c_str(), fsdk::Format::R8G8B8)) {
+		std::cerr << "Failed to load image: \"" << imagePath << "\"" << std::endl;
+		return false;  // Error occurred
+	}
+	fsdk::Landmarks68 transformedLandmarks68;
+
+	// Create eye estimator.
+	auto resEyeEstimator = faceEngine->createEyeEstimator();
+	if (!resEyeEstimator) {
+		std::cerr << "Failed to create eye estimator instance. Reason: " << resEyeEstimator.what() << std::endl;
+		return false;
+	}
+	fsdk::IEyeEstimatorPtr eyeEstimator = resEyeEstimator.getValue();
+
+	// Get eye estimation.
+	fsdk::EyesEstimation eyesEstimation;
+	fsdk::EyeCropper cropper;
+	fsdk::EyeCropper::EyesRects cropRoi = cropper.cropByLandmarks68(warp, transformedLandmarks68);
+	fsdk::Result<fsdk::FSDKError> eyeEstimationResult =
+		eyeEstimator->estimate(warp, cropRoi, eyesEstimation);
+
+	if (eyeEstimationResult.isOk()) {
+		std::cout << "Eye estimate:";
+		std::cout << "\nleft eye state: " << static_cast<int>(eyesEstimation.leftEye.state);
+		std::cout << " (0 - close, 1 - open, 2 - not eye)";
+		std::cout << "\nright eye state: " << static_cast<int>(eyesEstimation.rightEye.state);
+		std::cout << " (0 - close, 1 - open, 2 - not eye)" << std::endl;
+		std::cout << std::endl;
+	}
+	else 
+	{
+		std::cerr << "Failed to make eye estimation. Reason: " << eyeEstimationResult.what() << std::endl;
+		return false;
+	}
+	return true;
+}
+
+bool FaceEngineWrapper::OverlapEstimation(fsdk::IFaceEngine* faceEngine, const std::string& imagePath) {
+
+	fsdk::Detection detection;
+	fsdk::Image image;
+	if (!image.load(imagePath.c_str(), fsdk::Format::R8G8B8)) {
+		std::cerr << "Failed to load image: \"" << imagePath << "\"" << std::endl;
+		return false;  // Error occurred
+	}
+
+	/// Create overlap estimator.
+	auto resOverlapEstimator = faceEngine->createOverlapEstimator();
+	if (!resOverlapEstimator) {
+		std::cerr << "Failed to create overlap estimator instance. Reason: " << resOverlapEstimator.what();
+		std::cerr << std::endl;
+		return false;
+	}
+	fsdk::IOverlapEstimatorPtr overlapEstimator = resOverlapEstimator.getValue();
+
+	// Get overlap estimation.
+	fsdk::OverlapEstimation overlapEstimation{};
+	fsdk::Result<fsdk::FSDKError> overlapEstimationResult =
+		overlapEstimator->estimate(image, detection, overlapEstimation);
+
+	if (overlapEstimationResult.isOk()) {
+		std::cout << "Face overlap estimate:";
+		std::cout << "\noverlapValue: " << overlapEstimation.overlapValue << " (range [0, 1])";
+		std::cout << "\noverlapped: " << overlapEstimation.overlapped;
+		std::cout << " (0 - not overlapped, 1 - overlapped)" << std::endl;
+	}
+	else {
+		std::cerr << "Failed to make overlap estimation. Reason: " << overlapEstimationResult.what();
+		std::cerr << std::endl;
+		return false;
+	}
+	return true;
 }
 
 

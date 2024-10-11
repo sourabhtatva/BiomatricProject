@@ -35,6 +35,13 @@ public:
 	bool MedicalMaskEstimator(fsdk::IFaceEngine* faceEngine, const std::string& imagePath);
 	bool PPEEstimator(fsdk::IFaceEngine* faceEngine, const std::string& imagePath);
 	bool AttributeEstimator(fsdk::IFaceEngine* faceEngine, const std::string& imagePath);
+	bool HumanDetection(const std::string& imagePath, fsdk::IFaceEngine* faceEngine);
+	bool CredibilityEstimator(fsdk::IFaceEngine* faceEngine, const std::string& imagePath);
+	bool QualityEstimator(fsdk::IFaceEngine* faceEngine, const std::string imagePath);
+	bool SubjectiveQualityEstimation(fsdk::IFaceEngine* faceEngine, const std::string imagePath);
+	bool OverlapEstimation(fsdk::IFaceEngine* faceEngine, const std::string& imagePath);
+	bool BestShotQualityEstimation(fsdk::IFaceEngine* faceEngine, const std::string& imagePath);
+	bool EyesEstimation(fsdk::IFaceEngine* faceEngine, const std::string& imagePath);
 
 private:
 	fsdk::IFaceEngine* m_faceEngine;
