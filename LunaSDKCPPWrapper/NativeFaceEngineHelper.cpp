@@ -203,3 +203,152 @@ bool NativeFaceEngineHelper::CredibilityEstimator(fsdk::IFaceEngine* faceEngine,
 
 	return true;  // Return true on success
 }
+
+bool NativeFaceEngineHelper::LivenessOneShotRGBEstimator(fsdk::IFaceEngine* faceEngine, const std::string& imagePath) {
+
+	// Load image to work with it.
+	fsdk::Image image;
+	if (!image.load(imagePath.c_str(), fsdk::Format::R8G8B8)) {
+		std::cerr << "Failed to load image: \"" << imagePath << "\"" << std::endl;
+		return false;
+	}
+
+	// Detect no more than 10 faces in the image.
+	uint32_t detectionsCount = 10;
+
+	// Yaw, pitch and roll.
+	constexpr int principalAxes = 20;
+
+	// Minimum detection size in pixels.
+	constexpr int minDetSize = 200;
+
+	// Step back from the borders.
+	constexpr int borderDistance = 5;
+
+	auto resEstimator = faceEngine->createLivenessOneShotRGBEstimator();
+	if (resEstimator.isError()) {
+		std::cerr << "Failed to create Liveness OneShotRGB estimator instance. Reason: " << resEstimator.what();
+		std::cerr << std::endl;
+		return -1;
+	}
+	fsdk::ILivenessOneShotRGBEstimatorPtr livenessEstimator = resEstimator.getValue();
+
+	auto resBsqEstimator = faceEngine->createBestShotQualityEstimator();
+	if (!resBsqEstimator) {
+		std::cerr << "Failed to create BestShotQuality estimator instance. Reason: " << resBsqEstimator.what();
+		std::cerr << std::endl;
+		return -1;
+	}
+	fsdk::IBestShotQualityEstimatorPtr qualityEstimator = resBsqEstimator.getValue();
+
+	const size_t inputImagesCount = imagePath[0];
+	std::vector<fsdk::Image> images(inputImagesCount);
+	std::vector<fsdk::Rect> imagesRects(inputImagesCount);
+	for (size_t i = 1; i <= inputImagesCount; ++i) {
+		// Load images.
+		if (!images[i - 1].load(imagePath.c_str(), fsdk::Format::R8G8B8)) {
+			std::cerr << "Failed to load image: \"" << imagePath << "\"" << std::endl;
+			return -1;
+		}
+		imagesRects[i - 1] = images[i - 1].getRect();
+	}
+
+	std::clog << "Detecting faces." << std::endl;
+	auto detRes = faceEngine->createDetector();
+	if (detRes.isError()) {
+		std::cerr << "Failed to create face detector instance. Reason: " << detRes.what() << std::endl;
+		return -1;
+	}
+	fsdk::IDetectorPtr faceDetector = detRes.getValue();
+	fsdk::ResultValue<fsdk::FSDKError, fsdk::Ref<fsdk::IFaceDetectionBatch>> detectorResult =
+		faceDetector->detect(images, imagesRects, detectionsCount, fsdk::DT_ALL);
+
+	if (detectorResult.isError()) {
+		std::cerr << "Failed to detect face detection. Reason: " << detectorResult.what() << std::endl;
+		return -1;
+	}
+	fsdk::IFaceDetectionBatchPtr detectionBatch = detectorResult.getValue();
+	const fsdk::Span<const fsdk::Detection> detection = detectionBatch->getDetections(0);
+	const fsdk::Span<const fsdk::Landmarks5> landmarks5 = detectionBatch->getLandmarks5(0);
+
+	if (detectionsCount > 1) {
+		std::cerr << "Warning: On image found more than one face. And this breaking ";
+		std::cerr << "`Liveness OneShotRGB estimator` requirements. Results may be incorrect.";
+		std::cerr << " Only the first detection will be handled." << std::endl;
+	}
+
+	fsdk::HeadPoseEstimation headPose{};
+	fsdk::IBestShotQualityEstimator::EstimationResult bestShotResult;
+	fsdk::Result<fsdk::FSDKError> bestShotError = qualityEstimator->estimate(
+		image,
+		detection[0],
+		fsdk::IBestShotQualityEstimator::EstimationRequest::estimateHeadPose,
+		bestShotResult);
+
+	if (bestShotError.isError()) {
+		std::cerr << "Failed to make head pose estimation. Reason: " << bestShotError.what() << std::endl;
+		return false;
+	}
+	headPose = bestShotResult.headPose.value();
+
+	if (
+		std::abs(headPose.pitch) > principalAxes || std::abs(headPose.yaw) > principalAxes ||
+		std::abs(headPose.roll) > principalAxes) {
+
+		std::cerr << "Can't estimate LivenessOneShotRGBEstimation. ";
+		std::cerr << "Yaw, pitch or roll absolute value is larger than expected value: " << principalAxes << ".";
+		std::cerr << "\nPitch angle estimation: " << headPose.pitch << "\nYaw angle estimation: " << headPose.yaw;
+		std::cerr << "\nRoll angle estimation: " << headPose.roll << std::endl;
+		return false;
+	}
+
+	const fsdk::Rect detectionRect = detection[0].getRect();
+
+	if (std::min(detectionRect.width, detectionRect.height) < minDetSize) {
+		std::cerr << "Bounding Box width and/or height is less than `minDetSize` - " << minDetSize << std::endl;
+		return false;
+	}
+
+	if (
+		(detectionRect.x + detectionRect.width) > (image.getWidth() - borderDistance) ||
+		detectionRect.x < borderDistance) {
+		std::cerr << "Bounding Box width is out of border distance - " << borderDistance << std::endl;
+		return false;
+	}
+
+	if (
+		(detectionRect.y + detectionRect.height) > (image.getHeight() - borderDistance) ||
+		detectionRect.y < borderDistance) {
+		std::cerr << "Bounding Box height is out of border distance - " << borderDistance << std::endl;
+		return false;
+	}
+
+	fsdk::LivenessOneShotRGBEstimation estimation{};
+	fsdk::Result<fsdk::FSDKError> error = livenessEstimator->estimate(image, detection[0], landmarks5[0], estimation);
+
+	if (error.isError()) {
+		std::cerr << "Failed to estimate Liveness OneShotRGB. Reason: " << error.what() << std::endl;
+		return false;
+	}
+
+	std::string livenessState;
+	switch (estimation.state) {
+	case fsdk::LivenessOneShotRGBEstimation::State::Alive: {
+		livenessState = "Alive";
+		break;
+	}
+	case fsdk::LivenessOneShotRGBEstimation::State::Fake: {
+		livenessState = "Fake";
+		break;
+	}
+	case fsdk::LivenessOneShotRGBEstimation::State::Unknown: {
+		livenessState = "Unknown";
+		break;
+	}
+	default:
+		break;
+	}
+
+	std::cout << "\nLiveness OneShotRGB estimation ";
+	std::cout << "\n score: " << estimation.score << "\n liveness status : " << livenessState << std::endl;
+}

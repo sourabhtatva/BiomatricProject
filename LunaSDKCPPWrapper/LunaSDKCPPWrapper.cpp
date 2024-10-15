@@ -10,10 +10,13 @@
 #include <filesystem>
 #include <fstream>
 #include <vector>
+#include <opencv2/opencv.hpp>
+#include <opencv2/imgcodecs.hpp>
 
 using namespace fsdk;
 using namespace System;
 using namespace System::Runtime::InteropServices;
+
 
 //Create FaceEngineWrapper class to use and initialize face engine object. 
 FaceEngineWrapper::FaceEngineWrapper()
@@ -25,6 +28,8 @@ FaceEngineWrapper::~FaceEngineWrapper()
 {
 	this->!FaceEngineWrapper();
 }
+
+#pragma region Public Methods
 
 //Create !FaceEngineWrapper method to set null pointers and using in destructor.
 FaceEngineWrapper::!FaceEngineWrapper()
@@ -47,7 +52,7 @@ FaceEngineWrapper::!FaceEngineWrapper()
 }
 
 //Create InitializeEngine method that returns face engine object is initialized or not.
-auto FaceEngineWrapper::ExecuteAction(String^ action)
+auto FaceEngineWrapper::ExecuteAction(String^ action, String^ base64String)
 {
 	std::string dataDirectory = DATA_DIC_DIR;
 	std::string configPath = dataDirectory + std::string(CONFIG_FILE_NAME);
@@ -98,7 +103,7 @@ auto FaceEngineWrapper::ExecuteAction(String^ action)
 			}
 			if (action == "ProcessingImage")
 			{
-				bool status = ProcessingImage();
+				bool status = ProcessingImage(base64String);
 				return status ? gcnew String("Processing successful") : gcnew String("Processing failed");
 			}
 			if (action == "FaceDetection")
@@ -301,64 +306,6 @@ bool FaceEngineWrapper::ActivateLicense() {
 		std::cout << "An error occurred in ActivateLicense: " << ex.what() << std::endl;
 		return false;
 	}
-}
-
-//Create Base64Decode method that decode the encoded input image string. 
-std::vector<unsigned char> FaceEngineWrapper::Base64Decode(const std::string& encodedImageString) {
-	std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-		"abcdefghijklmnopqrstuvwxyz"
-		"0123456789+/";
-	std::vector<unsigned char> decodedImageString;
-	std::vector<int> T(256, -1);
-	for (int i = 0; i < 64; i++) T[base64_chars[i]] = i;
-
-	int val = 0, valb = -8;
-	for (unsigned char c : encodedImageString) {
-		if (T[c] == -1) break;
-		val = (val << 6) + T[c];
-		valb += 6;
-		if (valb >= 0) {
-			decodedImageString.push_back(char((val >> valb) & 0xFF));
-			valb -= 8;
-		}
-	}
-	return decodedImageString;
-}
-
-//Create SavePPMFile method that creates the ppm file format image.
-void FaceEngineWrapper::SavePPMFile(const std::string& filename, int width, int height, const std::vector<unsigned char>& data) {
-	std::ofstream file(filename, std::ios::binary);
-
-	if (!file) {
-		std::cerr << "Error opening file for writing: " << filename << std::endl;
-		return;
-	}
-
-	// Write the PPM header
-	file << "P6\n" << width << " " << height << "\n255\n";
-
-	// Write binary image data (RGB)
-	file.write(reinterpret_cast<const char*>(data.data()), data.size());
-
-	file.close();
-	std::cout << "Image saved as: " << filename << std::endl;
-}
-
-//Create ProcessingImage method that process the ppm image and create ppm image file.
-bool FaceEngineWrapper::ProcessingImage()
-{
-	std::string base64Image = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAAOCAMAAAD+MweGAAADAFBMVEUAAAAAAFUAAKoAAP8AJAAAJFUAJKoAJP8ASQAASVUASaoASf8AbQAAbVUAbaoAbf8AkgAAklUAkqoAkv8AtgAAtlUAtqoAtv8A2wAA21UA26oA2/8A/wAA/1UA/6oA//8kAAAkAFUkAKokAP8kJAAkJFUkJKokJP8kSQAkSVUkSaokSf8kbQAkbVUkbaokbf8kkgAkklUkkqokkv8ktgAktlUktqoktv8k2wAk21Uk26ok2/8k/wAk/1Uk/6ok//9JAABJAFVJAKpJAP9JJABJJFVJJKpJJP9JSQBJSVVJSapJSf9JbQBJbVVJbapJbf9JkgBJklVJkqpJkv9JtgBJtlVJtqpJtv9J2wBJ21VJ26pJ2/9J/wBJ/1VJ/6pJ//9tAABtAFVtAKptAP9tJABtJFVtJKptJP9tSQBtSVVtSaptSf9tbQBtbVVtbaptbf9tkgBtklVtkqptkv9ttgBttlVttqpttv9t2wBt21Vt26pt2/9t/wBt/1Vt/6pt//+SAACSAFWSAKqSAP+SJACSJFWSJKqSJP+SSQCSSVWSSaqSSf+SbQCSbVWSbaqSbf+SkgCSklWSkqqSkv+StgCStlWStqqStv+S2wCS21WS26qS2/+S/wCS/1WS/6qS//+2AAC2AFW2AKq2AP+2JAC2JFW2JKq2JP+2SQC2SVW2Saq2Sf+2bQC2bVW2baq2bf+2kgC2klW2kqq2kv+2tgC2tlW2tqq2tv+22wC221W226q22/+2/wC2/1W2/6q2///bAADbAFXbAKrbAP/bJADbJFXbJKrbJP/bSQDbSVXbSarbSf/bbQDbbVXbbarbbf/bkgDbklXbkqrbkv/btgDbtlXbtqrbtv/b2wDb21Xb26rb2//b/wDb/1Xb/6rb////AAD/AFX/AKr/AP//JAD/JFX/JKr/JP//SQD/SVX/Sar/Sf//bQD/bVX/bar/bf//kgD/klX/kqr/kv//tgD/tlX/tqr/tv//2wD/21X/26r/2////wD//1X//6r////qm24uAAAA1ElEQVR42h1PMW4CQQwc73mlFJGCQChFIp0Rh0RBGV5AFUXKC/KPfCFdqryEgoJ8IX0KEF64q0PPnow3jT2WxzNj+gAgAGfvvDdCQIHoSnGYcGDE2nH92DoRqTYJ2bTcsKgqhIi47VdgAWNmwFSFA1UAAT2sSFcnq8a3x/zkkJrhaHT3N+hD3aH7ZuabGHX7bsSMhxwTJLr3evf1e0nBVcwmqcTZuatKoJaB7dSHjTZdM0G1HBTWefly//q2EB7/BEvk5vmzeQaJ7/xKPImpzv8/s4grhAxHl0DsqGUAAAAASUVORK5CYII=";
-
-	const std::string base64Data = base64Image.substr(base64Image.find(",") + 1);
-
-	std::vector<unsigned char> decoded_data = Base64Decode(base64Data);
-
-	int width = 300;
-	int height = 200;
-
-	SavePPMFile("output_image.ppm", width, height, decoded_data);
-
-	return true;
 }
 
 //Create a method called FaceDetection that detects a face in the given image.
@@ -914,6 +861,219 @@ bool FaceEngineWrapper::OverlapEstimation(fsdk::IFaceEngine* faceEngine, const s
 	return true;
 }
 
+//Create a method called LivenessOneShotRGBEstimator that checks the liveness of the person in the provided image.
+bool FaceEngineWrapper::LivenessOneShotRGBEstimator(fsdk::IFaceEngine* faceEngine, const std::string& imagePath) {
+	return NativeFaceEngineHelper::LivenessOneShotRGBEstimator(faceEngine, imagePath);
+}
+
+//Create a method called LivenessFlyingFacesEstimation that checks the liveness of the person in the provided image.
+bool  FaceEngineWrapper::LivenessFlyingFacesEstimation(fsdk::IFaceEngine* faceEngine, const std::string imagePath) {
+
+	fsdk::Image image;
+	if (!image.load(imagePath.c_str(), fsdk::Format::R8G8B8)) {
+		std::cerr << "Failed to load image: \"" << imagePath << "\"" << std::endl;
+		return false;
+	}
+
+	// Detect no more than 10 faces in the image.
+	uint32_t detectionsCount = 10;
+
+	const size_t inputImagesCount = image;
+	std::vector<fsdk::Image> images(inputImagesCount);
+	std::vector<fsdk::Rect> imagesRects(inputImagesCount);
+	for (size_t i = 1; i <= inputImagesCount; ++i) {
+		// Load images.
+		if (!images[i - 1].load(imagePath.c_str(), fsdk::Format::R8G8B8)) {
+			std::cerr << "Failed to load image: \"" << imagePath << "\"" << std::endl;
+			return -1;
+		}
+		imagesRects[i - 1] = images[i - 1].getRect();
+	}
+
+	std::clog << "Detecting faces." << std::endl;
+	auto detRes = faceEngine->createDetector();
+	if (detRes.isError()) {
+		std::cerr << "Failed to create face detector instance. Reason: " << detRes.what() << std::endl;
+		return -1;
+	}
+	fsdk::IDetectorPtr faceDetector = detRes.getValue();
+	fsdk::ResultValue<fsdk::FSDKError, fsdk::Ref<fsdk::IFaceDetectionBatch>> detectorResult =
+		faceDetector->detect(images, imagesRects, detectionsCount, fsdk::DT_ALL);
+
+	if (detectorResult.isError()) {
+		std::cerr << "Failed to detect face detection. Reason: " << detectorResult.what() << std::endl;
+		return -1;
+	}
+	fsdk::IFaceDetectionBatchPtr detectionBatch = detectorResult.getValue();
+	const fsdk::Span<const fsdk::Detection> detection = detectionBatch->getDetections(0);
+	const fsdk::Span<const fsdk::Landmarks5> landmarks5 = detectionBatch->getLandmarks5(0);
+
+	if (detectionsCount > 1) {
+		std::cerr << "Warning: On image found more than one face. And this breaking ";
+		std::cerr << "`Liveness OneShotRGB estimator` requirements. Results may be incorrect.";
+		std::cerr << " Only the first detection will be handled." << std::endl;
+	}
+
+	auto resLivenessFlyingFacesEstimator = faceEngine->createLivenessFlyingFacesEstimator();
+	if (!resLivenessFlyingFacesEstimator) {
+		std::cerr << "Failed to create flying faces estimator instance. Reason: ";
+		std::cerr << resLivenessFlyingFacesEstimator.what() << std::endl;
+		return -1;
+	}
+	fsdk::ILivenessFlyingFacesEstimatorPtr livenessFlyingFacesEstimator =
+		resLivenessFlyingFacesEstimator.getValue();
+
+	// Get flying faces liveness estimation.
+	fsdk::LivenessFlyingFacesEstimation flyingFacesEstimation{};
+	// may be used with span of Faces, in that case will return span of scores
+	auto flyingFacesResult =
+		livenessFlyingFacesEstimator->estimate(image, detection[0], flyingFacesEstimation);
+	if (flyingFacesResult.isOk()) {
+		std::cout << "\nFlyingFacesLiveness:" << std::endl;
+		std::cout << "score: " << flyingFacesEstimation.score;
+		std::cout << ", (range [0, 1], where 0 - is fake, 1 - is real person)" << std::endl;
+		std::cout << "isReal: " << flyingFacesEstimation.isReal << std::endl;
+	}
+	else {
+		std::cerr << "FlyingFacesLiveness estimation error. Reason: " << flyingFacesResult.what();
+		std::cerr << std::endl;
+	}
+}
+
+bool  FaceEngineWrapper::DeepFakeEstimator(fsdk::IFaceEngine* faceEngine, const std::string& imagePath) {
+
+	fsdk::Image image;
+	if (!image.load(imagePath.c_str(), fsdk::Format::R8G8B8)) {
+		std::cerr << "Failed to load image: \"" << imagePath << "\"" << std::endl;
+		return false;
+	}
+
+	/// Create default detector, see faceengine.conf - "defaultDetectorType"
+	auto detRes = faceEngine->createDetector();
+	if (detRes.isError()) {
+		std::cerr << "Failed to create face detector instance. Reason: " << detRes.what() << std::endl;
+		return -1;
+	}
+
+	fsdk::IDetectorPtr faceDetector = detRes.getValue();
+	std::clog << "Detecting faces." << std::endl;
+
+
+	fsdk::ResultValue<fsdk::FSDKError, fsdk::Face> detectorResult =
+		faceDetector->detectOne(image, image.getRect(), fsdk::DT_ALL);
+
+	if (detectorResult.isError()) {
+		std::cerr << "Failed to detect face detection. Reason: " << detectorResult.what() << std::endl;
+		return -1;
+	}
+
+	// Prepare data for detect example
+	const std::vector<fsdk::Image> images = { image, image };
+	const std::vector<fsdk::Detection> detections = { detectorResult.getValue().detection,detectorResult.getValue().detection };
+
+
+	using DeepFakeMode = fsdk::experimental::DeepFakeMode;
+	deepFakeEstimatorProcess(images, detections, faceEngine, DeepFakeMode::M1);
+	deepFakeEstimatorProcess(images, detections, faceEngine, DeepFakeMode::M2);
+}
+
+bool  FaceEngineWrapper::HeadWearEstimation(fsdk::IFaceEngine* faceEngine, const std::string& imagePath) {
+
+	fsdk::Image image;
+	if (!image.load(imagePath.c_str(), fsdk::Format::R8G8B8)) {
+		std::cerr << "Failed to load image: \"" << imagePath << "\"" << std::endl;
+		return false;
+	}
+
+	auto resHeadWearEstimator = faceEngine->createHeadWearEstimator();
+	if (resHeadWearEstimator.isError()) {
+		std::cerr << "Failed to create head wear estimator instance. Reason: " << resHeadWearEstimator.what();
+		std::cerr << std::endl;
+		return -1;
+	}
+	fsdk::IHeadWearEstimatorPtr headWearEstimator = resHeadWearEstimator.getValue();
+
+	fsdk::HeadWearEstimation headWearEstimation = {};
+	fsdk::Result<fsdk::FSDKError> headWearStatus = headWearEstimator->estimate(image, headWearEstimation);
+	if (headWearStatus.isError()) {
+		std::cerr << "HeadWear estimation error. Reason: " << headWearStatus.what() << std::endl;
+		return -1;
+	}
+	const fsdk::HeadWearStateEstimation& headWearState = headWearEstimation.state;
+	const fsdk::HeadWearTypeEstimation& headWearType = headWearEstimation.type;
+	std::cout << "HeadWearEstimation:";
+	std::cout << "\n state: " << getHeadWearState(headWearEstimation) << "\n scores:";
+	std::cout << "\n\t Yes: " << headWearState.getScore(fsdk::HeadWearState::Yes);
+	std::cout << "\n\t No: " << headWearState.getScore(fsdk::HeadWearState::No);
+	std::cout << "\n type: " << getHeadWearType(headWearEstimation) << "\n scores:";
+	std::cout << "\n\t NoHeadWear: " << headWearType.getScore(fsdk::HeadWearType::NoHeadWear);
+	std::cout << "\n\t BaseballCap: " << headWearType.getScore(fsdk::HeadWearType::BaseballCap);
+	std::cout << "\n\t Beanie: " << headWearType.getScore(fsdk::HeadWearType::Beanie);
+	std::cout << "\n\t PeakedCap: " << headWearType.getScore(fsdk::HeadWearType::PeakedCap);
+	std::cout << "\n\t Shawl: " << headWearType.getScore(fsdk::HeadWearType::Shawl);
+	std::cout << "\n\t HatWithEarFlaps: " << headWearType.getScore(fsdk::HeadWearType::HatWithEarFlaps);
+	std::cout << "\n\t Helmet: " << headWearType.getScore(fsdk::HeadWearType::Helmet);
+	std::cout << "\n\t Hood: " << headWearType.getScore(fsdk::HeadWearType::Hood);
+	std::cout << "\n\t Hat: " << headWearType.getScore(fsdk::HeadWearType::Hat);
+	std::cout << "\n\t Other: " << headWearType.getScore(fsdk::HeadWearType::Other) << std::endl;
+
+}
+#pragma endregion
+
+#pragma region Private Methods
+//Create a method called Base64Decode that decodes the encoded input image string. 
+std::vector<unsigned char> FaceEngineWrapper::Base64Decode(const std::string& encodedImageString) {
+	std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+		"abcdefghijklmnopqrstuvwxyz"
+		"0123456789+/";
+	std::vector<unsigned char> decodedImageString;
+	std::vector<int> T(256, -1);
+	for (int i = 0; i < 64; i++) {
+		T[base64_chars[i]] = i;
+	}
+
+	int val = 0, valb = -8;
+	for (unsigned char c : encodedImageString) {
+		if (T[c] == -1) {
+			if (c != '=') {
+				throw std::invalid_argument("Invalid Base64 character encountered.");
+			}
+			break;
+		}
+		val = (val << 6) + T[c];
+		valb += 6;
+		if (valb >= 0) {
+			decodedImageString.push_back(static_cast<unsigned char>((val >> valb) & 0xFF));
+			valb -= 8;
+		}
+	}
+	return decodedImageString;
+}
+
+//Create a method called ProcessingImage that converts given base 64 string into PPM file. 
+bool FaceEngineWrapper::ProcessingImage(String^ base64String) {
+	std::string base64Image = ConvertStringToStdString(base64String);
+
+	std::vector<unsigned char> decoded_data = Base64Decode(base64Image);
+	if (decoded_data.empty()) {
+		std::cerr << "Decoded data is empty." << std::endl;
+		return false;
+	}
+
+	cv::Mat img = cv::imdecode(decoded_data, cv::IMREAD_COLOR); // Load as a color image
+	if (img.empty()) {
+		std::cerr << "Failed to decode the image." << std::endl;
+		return false;
+	}
+
+	if (!cv::imwrite("output_image.ppm", img)) {
+		std::cerr << "Failed to save the image." << std::endl;
+		return false;
+	}
+
+	std::cout << "Image saved as: output_image.ppm" << std::endl;
+	return true;
+}
 
 //Create ConvertStringToStdString method that converts managed code string into unmanaged code string.
 std::string FaceEngineWrapper::ConvertStringToStdString(String^ managedString)
@@ -923,3 +1083,128 @@ std::string FaceEngineWrapper::ConvertStringToStdString(String^ managedString)
 	Marshal::FreeHGlobal(pString);
 	return narrowString;
 }
+
+void  FaceEngineWrapper::deepFakeEstimatorProcess(const std::vector<fsdk::Image>& images, const std::vector<fsdk::Detection>& detections, fsdk::IFaceEngine* faceEngine, const fsdk::experimental::DeepFakeMode deepFakeMode) {
+
+	std::cout << "The DeepFake estimation mode is: " << deepFakeModeToString(deepFakeMode) << std::endl;
+
+	// Create DeepFake Estimator
+	const auto res = faceEngine->createDeepFakeEstimator(deepFakeMode);
+	if (res.isError()) {
+		std::cerr << "deepFakeEstimatorExample. Failed to create DeepFake Estimator instance. Reason: " << res.what() << std::endl;
+		return;
+	}
+
+	fsdk::experimental::IDeepFakeEstimatorPtr deepFakeEstimator = res.getValue();
+
+	// Make validation for input
+	std::vector<fsdk::Result<fsdk::FSDKError>> validationErrors;
+	validationErrors.resize(images.size());
+
+	fsdk::Result<fsdk::FSDKError> validateResult =
+		deepFakeEstimator->validate(images, detections, validationErrors);
+	if (validateResult.isError()) {
+		// something wrong with input
+		if (validateResult.getError() != fsdk::FSDKError::ValidationFailed) {
+			// Something wrong with input spans
+			std::cout << "deepFakeEstimatorExample. validation failed: " << validateResult.what() << std::endl;
+		}
+		else {
+			// Something wrong with elements in spans
+			std::cout << "deepFakeEstimatorExample. input error!" << std::endl;
+			for (size_t i = 0; i < validationErrors.size(); ++i) {
+				std::cout << "\t[" << i << "] input: " << validationErrors[i].what() << std::endl;
+			}
+		}
+
+		return;
+	}
+
+	// Run the estimation
+	using Estimation = fsdk::experimental::DeepFakeEstimation;
+	std::vector<Estimation> estimations;
+	estimations.resize(images.size());
+
+	fsdk::Result<fsdk::FSDKError> estimateResult = deepFakeEstimator->estimate(images, detections, estimations);
+
+	// Check errors.
+	if (estimateResult.isError()) {
+		std::cerr << "deepFakeEstimatorExample. Failed to estimate! Reason: " << estimateResult.what()
+			<< std::endl;
+		return;
+	}
+
+	// Handle results
+
+	for (std::size_t i = 0; i < estimations.size(); ++i) {
+		// Take the results for [i] image
+		std::cout << "deepFakeEstimatorExample. Estimation results for image[" << i << "]:" << std::endl;
+		std::cout << "\tscore: " << estimations[i].score
+			<< ", state: " << deepFakeEstimationStateToString(estimations[i].state) << std::endl;
+	}
+	std::cout << std::endl;
+}
+
+const char* FaceEngineWrapper::deepFakeEstimationStateToString(fsdk::experimental::DeepFakeEstimation::State state) {
+	using State = fsdk::experimental::DeepFakeEstimation::State;
+	switch (state) {
+	case State::Real:
+		return "Real";
+	case State::Fake:
+	default:
+		return "Fake";
+	}
+}
+
+const char* FaceEngineWrapper::deepFakeModeToString(fsdk::experimental::DeepFakeMode deepFakeMode) {
+	using DeepFakeMode = fsdk::experimental::DeepFakeMode;
+	switch (deepFakeMode) {
+	case DeepFakeMode::Default:
+		return "Default";
+	case DeepFakeMode::M1:
+		return "M1";
+	case DeepFakeMode::M2:
+		return "M2";
+	default:
+		return "Unknown";
+	}
+}
+
+std::string  FaceEngineWrapper::getHeadWearState(const fsdk::HeadWearEstimation& est) {
+	switch (est.state.result) {
+	case fsdk::HeadWearState::Yes:
+		return "Yes";
+	case fsdk::HeadWearState::No:
+		return "No";
+	default:
+		return "Unknown";
+	}
+}
+
+std::string  FaceEngineWrapper::getHeadWearType(const fsdk::HeadWearEstimation& est) {
+	switch (est.type.result) {
+	case fsdk::HeadWearType::NoHeadWear:
+		return "NoHeadWear";
+	case fsdk::HeadWearType::BaseballCap:
+		return "BaseballCap";
+	case fsdk::HeadWearType::Beanie:
+		return "Beanie";
+	case fsdk::HeadWearType::PeakedCap:
+		return "PeakedCap";
+	case fsdk::HeadWearType::Shawl:
+		return "Shawl";
+	case fsdk::HeadWearType::HatWithEarFlaps:
+		return "HatWithEarFlaps";
+	case fsdk::HeadWearType::Helmet:
+		return "Helmet";
+	case fsdk::HeadWearType::Hood:
+		return "Hood";
+	case fsdk::HeadWearType::Hat:
+		return "Hat";
+	case fsdk::HeadWearType::Other:
+		return "Other";
+	default:
+		return "Unknown";
+	}
+}
+#pragma endregion

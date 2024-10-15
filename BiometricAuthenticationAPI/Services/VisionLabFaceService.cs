@@ -12,9 +12,9 @@ namespace BiometricAuthenticationAPI.Services
             _faceEngineWrapper = new FaceEngineWrapper();
         }
 
-        public dynamic ExecuteAction(string action)
+        public dynamic ExecuteAction(string action, string? base64String)
         {
-            var response = _faceEngineWrapper.ExecuteAction(action);
+            var response = _faceEngineWrapper.ExecuteAction(action, base64String);
             return response;
         }
 

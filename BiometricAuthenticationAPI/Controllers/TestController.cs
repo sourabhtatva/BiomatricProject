@@ -27,8 +27,6 @@ namespace BiometricAuthenticationAPI.Controllers
 
                 //string response = _visionLabFaceService.ExecuteAction("GetDataDirectory");
 
-                //string response = _visionLabFaceService.ExecuteAction("ProcessingImage");
-
                 //string response = _visionLabFaceService.ExecuteAction("FaceDetection");
 
                 //string response = _visionLabFaceService.ExecuteAction("CrowdEstimator");
@@ -37,7 +35,9 @@ namespace BiometricAuthenticationAPI.Controllers
 
                 //string response = _visionLabFaceService.ExecuteAction("MedicalMaskEstimator");
 
-                string response = _visionLabFaceService.ExecuteAction("PPEEstimator");
+                //string response = _visionLabFaceService.ExecuteAction("PPEEstimator");
+
+                string response = _visionLabFaceService.ExecuteAction("ProcessingImage", "");
 
                 return this.SuccessResult(response, Messages.FaceMatching.General.FaceMatchingMessage(_entityName));
             }

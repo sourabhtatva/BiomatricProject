@@ -17,7 +17,7 @@ public:
 	~FaceEngineWrapper();
 	!FaceEngineWrapper();
 	bool IsEngineInitialized();
-	auto ExecuteAction(String^ action);
+	auto ExecuteAction(String^ action, String^ base64String);
 	String^ GetDataDirectory();
 	bool CheckFeatureId(int featureId);
 	bool IsActivated();
@@ -26,9 +26,6 @@ public:
 	DateTime GetExpirationDate(int featureId);
 	String^ GetDefaultPath();
 	bool ActivateLicense();
-	std::vector<unsigned char> Base64Decode(const std::string& encodedImageString);
-	void SavePPMFile(const std::string& filename, int width, int height, const std::vector<unsigned char>& data);
-	bool ProcessingImage();
 	bool FaceDetection(fsdk::IDetector* faceDetector, const std::string imagePath);
 	bool CrowdEstimator(fsdk::IFaceEngine* faceEngine, const std::string imagePath);
 	bool GlassesEstimator(fsdk::IFaceEngine* faceEngine, const std::string& imagePath);
@@ -42,6 +39,11 @@ public:
 	bool OverlapEstimation(fsdk::IFaceEngine* faceEngine, const std::string& imagePath);
 	bool BestShotQualityEstimation(fsdk::IFaceEngine* faceEngine, const std::string& imagePath);
 	bool EyesEstimation(fsdk::IFaceEngine* faceEngine, const std::string& imagePath);
+	bool LivenessOneShotRGBEstimator(fsdk::IFaceEngine* faceEngine, const std::string& imagePath);
+	bool LivenessFlyingFacesEstimation(fsdk::IFaceEngine* faceEngine, const std::string imagePath);
+	bool DeepFakeEstimator(fsdk::IFaceEngine* faceEngine, const std::string& imagePath);
+	bool HeadWearEstimation(fsdk::IFaceEngine* faceEngine, const std::string& imagePath);
+
 
 private:
 	fsdk::IFaceEngine* m_faceEngine;
@@ -53,5 +55,12 @@ private:
 	String^ m_licenseConfigPath;
 	String^ m_licenseFilePath;
 
+	std::vector<unsigned char> Base64Decode(const std::string& encodedImageString);
+	bool ProcessingImage(String^ base64String);
 	std::string ConvertStringToStdString(String^ managedString);
+	void deepFakeEstimatorProcess(const std::vector<fsdk::Image>& images, const std::vector<fsdk::Detection>& detections, fsdk::IFaceEngine* faceEngine, const fsdk::experimental::DeepFakeMode deepFakeMode);
+	const char* deepFakeModeToString(fsdk::experimental::DeepFakeMode deepFakeMode);
+	const char* deepFakeEstimationStateToString(fsdk::experimental::DeepFakeEstimation::State state);
+	std::string getHeadWearState(const fsdk::HeadWearEstimation& est);
+	std::string getHeadWearType(const fsdk::HeadWearEstimation& est);
 };
